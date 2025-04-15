@@ -1,8 +1,11 @@
+from flask import Flask, render_template, request, jsonify, send_from_directory # type: ignore
 import os
 import sys
-import json
 import threading
-from flask import Flask, render_template, request, jsonify, send_from_directory # type: ignore
+import time
+import webbrowser
+import argparse
+import json
 
 # 确保 src 目录在 Python 路径中
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -23,6 +26,17 @@ processing_status = {
     "summaries": [],
     "final_draft": ""
 }
+
+# 添加自动打开浏览器的函数
+def open_browser(host, port, delay=1.0):
+    """在指定延迟后打开浏览器"""
+    def _open_browser():
+        time.sleep(delay)  # 延迟一段时间确保Flask服务器已启动
+        url = f'http://{host}:{port}/'
+        print(f"正在打开浏览器访问: {url}")
+        webbrowser.open(url)
+
+    threading.Thread(target=_open_browser).start()
 
 def reset_status():
     """重置处理状态"""
@@ -282,4 +296,17 @@ def download_file(filename):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # 添加命令行参数解析
+    parser = argparse.ArgumentParser(description='Gemini文献综述助手')
+    parser.add_argument('--no-browser', action='store_true', 
+                        help='启动时不自动打开浏览器')
+    parser.add_argument('--port', type=int, default=5000,
+                        help='Web服务器端口（默认：5000）')
+    parser.add_argument('--host', type=str, default='127.0.0.1',
+                        help='Web服务器主机（默认：127.0.0.1）')
+    args = parser.parse_args()
+    
+    # 如果没有指定--no-browser参数，启动浏览器
+    if not args.no_browser and not os.environ.get("WERKZEUG_RUN_MAIN"):
+        open_browser(args.host, args.port)
+    app.run(debug=True, host=args.host, port=args.port)

@@ -1,12 +1,5 @@
-[1] 本刊编辑部. 九位院士、校长谈“人工智能赋能高等教育”——“‘人工智能赋能教育’中国工程科技论坛”会议综述[J/OL]. 西安交通大学学报(社会科学版), 2023(3).
-[2] 郑庆华. 人工智能赋能STEM教育创新发展：认识与实践[J/OL]. 中国高教研究, 2025, 2025(1).
-[3] 李德毅, 马楠. 人工智能看教育[J/OL]. 高等工程教育研究, 2023, 2023(3).
-[4] 刘泽民, 陈向东. 人工智能科学（AI4S）引发的范式变革——大语言模型视角下教育研究的问题、方法与过程[J/OL]. 远程教育杂志, 2024, 42(5).
-[5] 贾赟. 日本:以STEAM教育推动文理跨学科学习[J/OL]. 人民教育, 2023, 2023(24).
-[6] 李德毅, 马楠, 秦昆. 智能时代的教育[J/OL]. 高等工程教育研究, 2018, 2018(5).
-[7] 李德毅, 马楠. 智能时代新工科——人工智能推动教育改革的实践[J/OL]. 高等工程教育研究, 2017, 2017(5).
-[8] MENON M, SHEKHAR P. Developing a Conceptual Framework: Women STEM Faculty’s Participation in Entrepreneurship Education Programs[J/OL]. Research in Science Education, 2025, 55(1): 81-102.
-[9] KAYA-CAPOCCI S, PETERS-BURTON E. Enhancing Entrepreneurial Mindsets Through STEM Education: Vol. 15[M/OL]. Cham: Springer International Publishing, 2023.
-[10] YU W, ZHENG Z, HE J. Integrating Entrepreneurial Education into STEM Education:[J/OL]. Research in Science Education, 2025, 55(1): 159-185.
-[11] (PDF) Enhancing Innovation in Higher Education through Artificial Intelligence and Intellectual Property[J/OL]. ResearchGate, 2024.
-[12] 杨勇, 商译彤. STEAM教育视域下高职院校培养创新型数字人才的思考[J/OL]. 教育与职业, 2021, 2021(7).
+[1]黄乃静,于明哲.机器学习对经济学研究的影响研究进展[J].经济学动态,2018,(07):115-129.
+[2]李斌,邵新月,李玥阳.机器学习驱动的基本面量化投资研究[J].中国工业经济,2019,(08):61-79.
+[3]苏治,卢曼,李德轩.深度学习的金融实证应用:动态、贡献与展望[J].金融研究,2017,(05):111-126.
+[4]马甜,姜富伟,唐国豪.深度学习与中国股票市场因子投资——基于生成式对抗网络方法[J].经济学(季刊),2022,22(03):819-842.
+[5]姜富伟,凃俊,David E.Rapach,等.中国股票市场可预测性的实证研究[J].金融研究,2011,(09):107-121.

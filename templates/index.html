@@ -210,6 +210,7 @@
                             <div class="mt-3">
                                 <a id="downloadFinalBtn" href="/download/Results_Files/最终结果.txt"
                                     class="btn btn-success">下载文稿</a>
+                                <button id="regenerateFinalBtn" class="btn btn-primary ms-2">重新生成文稿</button>
                             </div>
                         </div>
                     </div>
@@ -258,6 +259,8 @@
             const finalDraftArea = document.getElementById('finalDraftArea');
             const finalDraftContent = document.getElementById('final-draft-content');
             const downloadFinalBtn = document.getElementById('downloadFinalBtn');
+            // 添加重新生成按钮引用
+            const regenerateFinalBtn = document.getElementById('regenerateFinalBtn');
 
             // 选择文件按钮事件
             selectAllBtn.addEventListener('click', function () {
@@ -327,7 +330,7 @@
             // 生成最终文稿
             generateFinalBtn.addEventListener('click', function () {
                 const outputType = document.querySelector('input[name="outputType"]:checked').value;
-
+            
                 // 发送请求生成最终文稿
                 fetch('/api/generate-final', {
                     method: 'POST',
@@ -345,7 +348,8 @@
                             finalGenerationForm.classList.add('d-none');
                             finalGenerationStatus.classList.remove('d-none');
                             finalDraftArea.classList.add('d-none');
-
+                            finalDraftContent.textContent = ''; // 清空之前的内容
+            
                             // 确保状态轮询正在运行
                             if (!statusInterval) {
                                 startStatusPolling();
@@ -361,6 +365,16 @@
             goToFinalBtn.addEventListener('click', function () {
                 const tab = new bootstrap.Tab(step3Tab);
                 tab.show();
+            });
+
+            // 添加重新生成按钮事件监听
+            regenerateFinalBtn.addEventListener('click', function () {
+                // 隐藏结果区域
+                finalDraftArea.classList.add('d-none');
+                // 显示生成表单
+                finalGenerationForm.classList.remove('d-none');
+                // 重置最终文稿内容
+                finalDraftContent.textContent = '';
             });
 
             // 添加全局变量记录开始时间和上次进度值
@@ -446,6 +460,7 @@
                             if (data.current_step === "生成完成" && data.final_draft) {
                                 finalGenerationStatus.classList.add('d-none');
                                 finalDraftArea.classList.remove('d-none');
+                                finalGenerationForm.classList.add('d-none'); // 确保表单隐藏
                                 finalDraftContent.textContent = data.final_draft;
                             }
 

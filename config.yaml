@@ -11,10 +11,10 @@
 
 
 llm:
-  model_name: "gemini-2.0-flash"                                      # 用于文献总结的模型
+  model_name: "gemini-2.0-flash-thinking-exp-01-21"                   # 用于文献总结的模型
   final_draft_model_name: "gemini-2.0-flash-thinking-exp-01-21"       # (可选) 用于最终生成的模型，可能需要更强能力
-  request_timeout: 300                                                # API 请求超时时间 (秒)
-  api_key: "API_KEY填到这里"                                           # 替换为您的 Gemini API 密钥
+  request_timeout: 600                                                # API 请求超时时间 (秒)
+  api_key: "替换为您的 Gemini API 密钥"                               # 替换为您的 Gemini API 密钥
   temperature: 1.2                                                    # 0.0 表示确定性输出，2.0 表示高度随机
   max_retries: 3                                                      # 最大重试次数
 

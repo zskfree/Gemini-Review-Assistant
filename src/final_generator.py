@@ -123,7 +123,8 @@ def generate_final_draft(
     # 2. 调用LLM API生成最终文稿
     print(f"提示词准备完成, 长度: {len(final_prompt)} 字符")
     print(f"\n模型{model_name}, 正在生成最终研究综述...")
-    
+    # print("最终提示词内容：", final_prompt)
+
     final_draft_text, error_msg = llm_api_func_text(
         model_name=model_name,
         prompt_text=final_prompt,
