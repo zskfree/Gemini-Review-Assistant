@@ -4,137 +4,336 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini - 文献综述（定性研究论文）生成助手</title>
+    <title>Gemini文献综述助手</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/common.css">
     <style>
+        .main-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .main-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .header-actions .btn {
+            margin-left: 8px;
+            border-radius: 12px;
+            font-weight: 500;
+            padding: 12px 20px;
+        }
+
+        .step-tabs {
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 2rem;
+        }
+
+        .step-tabs .nav-link {
+            border: none;
+            border-radius: 12px 12px 0 0;
+            color: #6c757d;
+            font-weight: 600;
+            padding: 16px 24px;
+            margin-right: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .step-tabs .nav-link:hover {
+            color: #495057;
+            background-color: #f8f9fa;
+        }
+
+        .step-tabs .nav-link.active {
+            color: #495057;
+            background-color: #ffffff;
+            border-bottom: 2px solid #007bff;
+        }
+
         .pdf-item {
-            padding: 10px;
-            margin-bottom: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            background: #ffffff;
+        }
+
+        .pdf-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
         }
 
         .pdf-item.has-ref {
             border-left: 4px solid #28a745;
+            background: linear-gradient(135deg, #f8fff9 0%, #ffffff 100%);
         }
 
         .pdf-item.no-ref {
             border-left: 4px solid #dc3545;
+            background: linear-gradient(135deg, #fff8f8 0%, #ffffff 100%);
         }
 
-        .step-card {
-            margin-bottom: 20px;
+        .summary-item {
+            margin-bottom: 16px;
+            padding: 16px;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            background: #ffffff;
+            transition: all 0.3s ease;
         }
 
-        .result-card {
-            margin-top: 20px;
-            margin-bottom: 20px;
+        .summary-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-success {
+            border-left: 4px solid #28a745;
+            background: linear-gradient(135deg, #f8fff9 0%, #ffffff 100%);
+        }
+
+        .summary-failure {
+            border-left: 4px solid #dc3545;
+            background: linear-gradient(135deg, #fff8f8 0%, #ffffff 100%);
+        }
+
+        .summary-skipped {
+            border-left: 4px solid #ffc107;
+            background: linear-gradient(135deg, #fffbf0 0%, #ffffff 100%);
+        }
+
+        .summary-preview {
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .summary-preview::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .summary-preview::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .summary-preview::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
         }
 
         #final-draft-content {
             white-space: pre-wrap;
             max-height: 500px;
             overflow-y: auto;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border: 1px solid #ddd;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.6;
+        }
+
+        #final-draft-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #final-draft-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
             border-radius: 4px;
         }
 
-        .summary-item {
-            margin-bottom: 15px;
-            padding: 10px;
-            border: 1px solid #ddd;
+        #final-draft-content::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
             border-radius: 4px;
         }
 
-        .summary-success {
-            border-left: 4px solid #28a745;
+        .progress-card {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border: none;
+            border-radius: 16px;
         }
 
-        .summary-failure {
-            border-left: 4px solid #dc3545;
+        .progress-info {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
         }
 
-        .summary-skipped {
-            border-left: 4px solid #ffc107;
+        .file-selection-buttons {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
-        .summary-preview {
-            max-height: 200px;
-            overflow-y: auto;
+        .file-selection-buttons .btn {
+            border-radius: 8px;
+            font-size: 0.875rem;
+            padding: 8px 16px;
         }
 
-        /* 回到顶部按钮样式 */
-        #backToTopBtn {
+        .research-theme-alert {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border: 2px solid #ffb74d;
+            border-radius: 12px;
+            color: #e65100;
+        }
+
+        .research-theme-alert strong {
+            font-weight: 700;
+        }
+
+        /* 统一的回到顶部按钮样式 - 适用于所有页面 */
+        .back-to-top {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: #0d6efd;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
+            border-radius: 50%;
+            font-size: 1.4rem;
             opacity: 0;
-            transform: translateY(20px);
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
             cursor: pointer;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
         }
-
-        #backToTopBtn.show {
+        
+        .back-to-top::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+        
+        .back-to-top.show {
             opacity: 1;
-            transform: translateY(0);
+            visibility: visible;
+            animation: bounceIn 0.6s ease-out;
         }
-
-        #backToTopBtn:hover {
-            background-color: #0b5ed7;
-            transform: scale(1.1);
+        
+        .back-to-top:hover {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
+            background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
         }
-
-        #backToTopBtn:active {
-            transform: scale(0.95);
+        
+        .back-to-top:hover::before {
+            opacity: 1;
         }
-
-        /* 添加箭头图标 */
-        #backToTopBtn::before {
-            content: "↑";
-            font-size: 20px;
-            font-weight: bold;
-            line-height: 1;
+        
+        .back-to-top:active {
+            transform: translateY(-3px) scale(1.05);
+        }
+        
+        /* 添加弹跳动画 */
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3) translateY(20px);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05) translateY(-5px);
+            }
+            70% {
+                transform: scale(0.9) translateY(0);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .back-to-top {
+                width: 50px;
+                height: 50px;
+                bottom: 20px;
+                right: 20px;
+                font-size: 1.2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .back-to-top {
+                width: 45px;
+                height: 45px;
+                bottom: 15px;
+                right: 15px;
+                font-size: 1.1rem;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="text-center flex-grow-1">Gemini 文献综述（定性研究论文）生成助手</h1>
-            <div>
-                <a href="/reference-check" class="btn btn-outline-primary me-2">
-                    <i class="fas fa-check-double"></i> 参考文献核对
-                </a>
-                <a href="/config" class="btn btn-outline-primary">
-                    <i class="fas fa-cog"></i> 配置
-                </a>
+    <!-- Main Header -->
+    <div class="main-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1>
+                    <i class="fas fa-graduation-cap me-3"></i>Gemini 文献综述助手
+                </h1>
+                <div class="header-actions">
+                    <a href="/reference-check" class="btn btn-outline-light">
+                        <i class="fas fa-check-double me-2"></i>参考文献核对
+                    </a>
+                    <a href="/config" class="btn btn-outline-light">
+                        <i class="fas fa-cog me-2"></i>配置管理
+                    </a>
+                </div>
             </div>
         </div>
+    </div>
 
+    <div class="container">
         <!-- 步骤导航 -->
-        <ul class="nav nav-tabs mb-4" id="stepTabs" role="tablist">
+        <ul class="nav nav-tabs step-tabs mb-4" id="stepTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="step1-tab" data-bs-toggle="tab" data-bs-target="#step1"
-                    type="button" role="tab" aria-controls="step1" aria-selected="true">1. 选择文献</button>
+                    type="button" role="tab" aria-controls="step1" aria-selected="true">
+                    <i class="fas fa-file-pdf me-2"></i>1. 选择文献
+                </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="step2-tab" data-bs-toggle="tab" data-bs-target="#step2" type="button"
-                    role="tab" aria-controls="step2" aria-selected="false">2. 文献总结</button>
+                    role="tab" aria-controls="step2" aria-selected="false">
+                    <i class="fas fa-cogs me-2"></i>2. 文献总结
+                </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="step3-tab" data-bs-toggle="tab" data-bs-target="#step3" type="button"
-                    role="tab" aria-controls="step3" aria-selected="false">3. 生成文稿</button>
+                    role="tab" aria-controls="step3" aria-selected="false">
+                    <i class="fas fa-file-alt me-2"></i>3. 生成文稿
+                </button>
             </li>
         </ul>
 
@@ -142,20 +341,31 @@
         <div class="tab-content" id="stepsContent">
             <!-- 步骤1: 选择文献 -->
             <div class="tab-pane fade show active" id="step1" role="tabpanel" aria-labelledby="step1-tab">
-                <div class="card step-card">
+                <div class="card content-card">
                     <div class="card-header">
-                        <h5>选择要处理的PDF文件</h5>
+                        <h5 class="card-title">
+                            <i class="fas fa-file-pdf me-2"></i>选择要处理的PDF文件
+                        </h5>
                     </div>
                     <div class="card-body">
-                        <div class="alert alert-info">
+                        {% if research_theme %}
+                        <div class="alert research-theme-alert">
+                            <i class="fas fa-lightbulb me-2"></i>
                             <strong>研究主题:</strong> {{ research_theme }}
                         </div>
+                        {% endif %}
 
                         {% if pdf_files %}
-                        <div class="mb-3">
-                            <button class="btn btn-sm btn-outline-primary" id="selectAllBtn">全选</button>
-                            <button class="btn btn-sm btn-outline-primary" id="selectWithRefsBtn">选择有引用的</button>
-                            <button class="btn btn-sm btn-outline-secondary" id="clearSelectionBtn">清除选择</button>
+                        <div class="file-selection-buttons">
+                            <button class="btn btn-outline-primary btn-modern" id="selectAllBtn">
+                                <i class="fas fa-check-double me-1"></i>全选
+                            </button>
+                            <button class="btn btn-outline-success btn-modern" id="selectWithRefsBtn">
+                                <i class="fas fa-check-circle me-1"></i>选择有引用的
+                            </button>
+                            <button class="btn btn-outline-secondary btn-modern" id="clearSelectionBtn">
+                                <i class="fas fa-times me-1"></i>清除选择
+                            </button>
                         </div>
 
                         <div class="pdf-list">
@@ -164,103 +374,154 @@
                                 <div class="form-check">
                                     <input class="form-check-input pdf-checkbox" type="checkbox" value="{{ pdf.path }}"
                                         id="pdf-{{ loop.index }}" {% if not pdf.has_ref %}disabled{% endif %}>
-                                    <label class="form-check-label" for="pdf-{{ loop.index }}">
+                                    <label class="form-check-label fw-bold" for="pdf-{{ loop.index }}">
                                         {{ pdf.filename }}
                                         {% if pdf.has_ref %}
-                                        <span class="badge bg-success">✓ 引用</span>
+                                        <span class="badge bg-success ms-2">
+                                            <i class="fas fa-check me-1"></i>已匹配引用
+                                        </span>
                                         {% else %}
-                                        <span class="badge bg-danger">✗ 无引用</span>
+                                        <span class="badge bg-danger ms-2">
+                                            <i class="fas fa-times me-1"></i>无匹配引用
+                                        </span>
                                         {% endif %}
                                     </label>
                                 </div>
-                                <div class="pdf-ref small text-muted mt-1">{{ pdf.ref_text }}</div>
+                                {% if pdf.ref_text %}
+                                <div class="pdf-ref small text-muted mt-2">
+                                    <i class="fas fa-quote-left me-1"></i>{{ pdf.ref_text }}
+                                </div>
+                                {% endif %}
                             </div>
                             {% endfor %}
                         </div>
                         {% else %}
                         <div class="alert alert-warning">
-                            未找到任何PDF文件。请检查PDF文件夹设置。
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>未找到任何PDF文件。</strong>请检查PDF文件夹设置。
                         </div>
                         {% endif %}
                     </div>
                     <div class="card-footer">
-                        <button class="btn btn-primary" id="processSelectedBtn">处理选中的PDF</button>
+                        <button class="btn btn-primary btn-modern" id="processSelectedBtn">
+                            <i class="fas fa-play me-2"></i>开始处理选中的PDF
+                        </button>
                     </div>
                 </div>
             </div>
 
             <!-- 步骤2: 文献总结 -->
             <div class="tab-pane fade" id="step2" role="tabpanel" aria-labelledby="step2-tab">
-                <div class="card step-card">
+                <div class="card content-card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">文献总结进度</h5>
-                        <button class="btn btn-primary d-none" id="goToFinalBtn">继续生成最终文稿</button>
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-cogs me-2"></i>文献总结进度
+                        </h5>
+                        <button class="btn btn-success btn-modern d-none" id="goToFinalBtn">
+                            <i class="fas fa-arrow-right me-2"></i>继续生成最终文稿
+                        </button>
                     </div>
                     <div class="card-body">
                         <div id="processingStatusArea">
                             <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
                                 请在步骤1中选择PDF文件并开始处理。
                             </div>
                         </div>
 
                         <div id="progressArea" class="d-none">
-                            <div class="alert alert-info mb-3">
-                                <p id="currentStepInfo">当前步骤: <span id="currentStep"></span></p>
-                                <p id="statusMessage"></p>
-                                <p id="progressText">处理进度: <span id="currentCount">0</span>/<span
-                                        id="totalCount">0</span></p>
-                                <p id="remainingTimeText">预计剩余时间: <span id="remainingTime">计算中...</span></p>
+                            <div class="progress-info">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-2">
+                                            <strong>当前步骤:</strong>
+                                            <span id="currentStep" class="text-primary"></span>
+                                        </p>
+                                        <p class="mb-2">
+                                            <strong>状态:</strong>
+                                            <span id="statusMessage"></span>
+                                        </p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-2">
+                                            <strong>处理进度:</strong>
+                                            <span id="currentCount">0</span>/<span id="totalCount">0</span>
+                                        </p>
+                                        <p class="mb-2">
+                                            <strong>预计剩余时间:</strong>
+                                            <span id="remainingTime">计算中...</span>
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <div id="summariesArea" class="mt-4 d-none">
-                            <h5>文献总结结果:</h5>
+                            <h5 class="mb-3">
+                                <i class="fas fa-list-alt me-2"></i>文献总结结果
+                            </h5>
                             <div id="summariesList"></div>
                         </div>
                     </div>
-                    <!-- 移除了这里原来的 card-footer 部分 -->
                 </div>
             </div>
 
             <!-- 步骤3: 生成文稿 -->
             <div class="tab-pane fade" id="step3" role="tabpanel" aria-labelledby="step3-tab">
-                <div class="card step-card">
+                <div class="card content-card">
                     <div class="card-header">
-                        <h5>生成最终文稿</h5>
+                        <h5 class="card-title">
+                            <i class="fas fa-file-alt me-2"></i>生成最终文稿
+                        </h5>
                     </div>
                     <div class="card-body">
                         <div id="finalGenerationForm">
-                            <p>请选择要生成的文稿类型:</p>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="outputType" id="outputTypeReview"
-                                    value="review" checked>
-                                <label class="form-check-label" for="outputTypeReview">
-                                    文献综述 (Literature Review)
-                                </label>
+                            <div class="mb-4">
+                                <p class="fw-bold mb-3">请选择要生成的文稿类型:</p>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="radio" name="outputType" id="outputTypeReview"
+                                        value="review" checked>
+                                    <label class="form-check-label" for="outputTypeReview">
+                                        <i class="fas fa-book me-2"></i>
+                                        <strong>文献综述 (Literature Review)</strong>
+                                        <div class="small text-muted">生成系统性的文献综述报告</div>
+                                    </label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="radio" name="outputType"
+                                        id="outputTypeQualitative" value="qualitative">
+                                    <label class="form-check-label" for="outputTypeQualitative">
+                                        <i class="fas fa-microscope me-2"></i>
+                                        <strong>定性研究论文</strong>
+                                        <div class="small text-muted">生成定性研究方法论的学术论文</div>
+                                    </label>
+                                </div>
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="outputType"
-                                    id="outputTypeQualitative" value="qualitative">
-                                <label class="form-check-label" for="outputTypeQualitative">
-                                    定性研究论文
-                                </label>
-                            </div>
-                            <button class="btn btn-primary mt-3" id="generateFinalBtn">生成最终文稿</button>
+                            <button class="btn btn-primary btn-modern" id="generateFinalBtn">
+                                <i class="fas fa-magic me-2"></i>生成最终文稿
+                            </button>
                         </div>
 
                         <div id="finalGenerationStatus" class="d-none">
                             <div class="alert alert-info" id="finalStatusMessage">
+                                <i class="fas fa-spinner fa-spin me-2"></i>
                                 正在生成最终文稿，请稍候...
                             </div>
                         </div>
 
                         <div id="finalDraftArea" class="result-card d-none">
-                            <h5>生成的最终文稿:</h5>
+                            <h5 class="mb-3">
+                                <i class="fas fa-file-text me-2"></i>生成的最终文稿
+                            </h5>
                             <div id="final-draft-content"></div>
-                            <div class="mt-3">
+                            <div class="mt-3 d-flex gap-2">
                                 <a id="downloadFinalBtn" href="/download/Results_Files/最终结果.txt"
-                                    class="btn btn-success">下载文稿</a>
-                                <button id="regenerateFinalBtn" class="btn btn-primary ms-2">重新生成文稿</button>
+                                    class="btn btn-success btn-modern">
+                                    <i class="fas fa-download me-2"></i>下载文稿
+                                </a>
+                                <button id="regenerateFinalBtn" class="btn btn-outline-primary btn-modern">
+                                    <i class="fas fa-redo me-2"></i>重新生成文稿
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -269,9 +530,11 @@
         </div>
     </div>
 
-    <!-- 回到顶部按钮 -->
-    <button id="backToTopBtn" title="回到顶部"></button>
-    
+    <!-- 统一的回到顶部按钮 -->
+    <button id="backToTopBtn" class="back-to-top" title="回到顶部">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -383,7 +646,11 @@
             // 生成最终文稿
             generateFinalBtn.addEventListener('click', function () {
                 const outputType = document.querySelector('input[name="outputType"]:checked').value;
-            
+
+                // 显示加载状态
+                generateFinalBtn.disabled = true;
+                generateFinalBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>正在生成...';
+
                 // 发送请求生成最终文稿
                 fetch('/api/generate-final', {
                     method: 'POST',
@@ -396,13 +663,16 @@
                     .then(data => {
                         if (data.error) {
                             alert('错误: ' + data.error);
+                            // 恢复按钮状态
+                            generateFinalBtn.disabled = false;
+                            generateFinalBtn.innerHTML = '<i class="fas fa-magic me-2"></i>生成最终文稿';
                         } else {
                             // 显示生成状态
                             finalGenerationForm.classList.add('d-none');
                             finalGenerationStatus.classList.remove('d-none');
                             finalDraftArea.classList.add('d-none');
-                            finalDraftContent.textContent = ''; // 清空之前的内容
-            
+                            finalDraftContent.textContent = '';
+
                             // 确保状态轮询正在运行
                             if (!statusInterval) {
                                 startStatusPolling();
@@ -411,8 +681,12 @@
                     })
                     .catch(error => {
                         alert('请求错误: ' + error);
+                        // 恢复按钮状态
+                        generateFinalBtn.disabled = false;
+                        generateFinalBtn.innerHTML = '<i class="fas fa-magic me-2"></i>生成最终文稿';
                     });
             });
+
 
             // 继续生成最终文稿按钮
             goToFinalBtn.addEventListener('click', function () {
@@ -448,6 +722,9 @@
                 finalGenerationForm.classList.remove('d-none');
                 // 重置最终文稿内容
                 finalDraftContent.textContent = '';
+                // 恢复生成按钮状态
+                generateFinalBtn.disabled = false;
+                generateFinalBtn.innerHTML = '<i class="fas fa-magic me-2"></i>生成最终文稿';
             });
 
             // 添加全局变量记录开始时间和上次进度值
@@ -474,7 +751,6 @@
                 checkStatus(); // 立即检查一次
             }
 
-            // 修改checkStatus函数
             function checkStatus() {
                 fetch('/api/status')
                     .then(response => response.json())
@@ -488,6 +764,8 @@
 
                         // 调试输出
                         console.log('Raw progress data:', data);
+                        console.log('Is processing:', data.is_processing);
+                        console.log('Current step:', data.current_step);
 
                         // 进度显示逻辑
                         const progress = Number(data.progress) || 0;
@@ -522,6 +800,8 @@
 
                         // 检查是否处理完成
                         if (!data.is_processing) {
+                            console.log('Processing completed, checking results...');
+
                             // 文献总结完成
                             if (data.current_step === "总结完成" && data.summaries && data.summaries.length > 0) {
                                 document.getElementById('remainingTime').textContent = "已完成";
@@ -531,10 +811,25 @@
 
                             // 最终文稿生成完成
                             if (data.current_step === "生成完成" && data.final_draft) {
+                                console.log('Final draft completed, updating UI...');
                                 finalGenerationStatus.classList.add('d-none');
                                 finalDraftArea.classList.remove('d-none');
-                                finalGenerationForm.classList.add('d-none'); // 确保表单隐藏
+                                finalGenerationForm.classList.add('d-none');
                                 finalDraftContent.textContent = data.final_draft;
+
+                                // 更新下载链接
+                                if (data.output_file) {
+                                    downloadFinalBtn.href = `/download/${encodeURIComponent(data.output_file)}`;
+                                    console.log('Download link updated to:', downloadFinalBtn.href);
+                                }
+                            } else if (data.current_step === "生成失败" || (data.message && data.message.includes('失败'))) {
+                                // 处理生成失败的情况
+                                finalGenerationStatus.classList.remove('d-none');
+                                finalStatusMessage.className = 'alert alert-danger';
+                                finalStatusMessage.innerHTML = `
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        ${data.message || '最终文稿生成失败'}
+                    `;
                             }
 
                             // 停止轮询
@@ -625,6 +920,7 @@
                     summariesList.appendChild(summaryElement);
                 });
             }
+
         });
     </script>
 </body>

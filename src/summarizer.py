@@ -83,9 +83,10 @@ def process_all_pdfs(
                 continue
             
             # 2. 准备结果数据结构
+            reference_string = ref_map[pdf_path]
             result_entry = {
                 "source_pdf_path": pdf_path,
-                "reference_string": ref_map[pdf_path],
+                "reference_string": reference_string,
                 "summary_markdown": None,
                 "status": "Pending",
                 "error_message": None,
@@ -104,12 +105,29 @@ def process_all_pdfs(
                 pbar.update(1)
                 continue
             
-            # 4. 检查缓存
-            if cache_enabled and pdf_path in cache_data:
-                cached = cache_data[pdf_path]
-                if cached.get("mtime") == result_entry["mtime"] and cached.get("status") == "Success":
-                    print(f"  命中缓存: '{filename}' (文件未修改)")
-                    cached["reference_string"] = ref_map[pdf_path]  # 更新引用信息
+            # 4. 检查缓存 - 改为使用reference_string作为主键
+            if cache_enabled and reference_string in cache_data:
+                cached = cache_data[reference_string]
+                # 检查文件是否存在且未修改
+                cached_path = cached.get("source_pdf_path")
+                if (cached_path and os.path.exists(cached_path) and 
+                    cached.get("mtime") == result_entry["mtime"] and 
+                    cached.get("status") == "Success"):
+                    print(f"  命中缓存: '{filename}' (引用匹配且文件未修改)")
+                    # 更新当前文件路径信息
+                    cached["source_pdf_path"] = pdf_path
+                    all_summaries.append(cached)
+                    success_count += 1
+                    if cached.get("process_time"):
+                        total_time += cached["process_time"]
+                    pbar.update(1)
+                    continue
+                elif (cached.get("status") == "Success" and 
+                      cached.get("summary_markdown")):
+                    # 文件可能已重命名，但总结仍然有效
+                    print(f"  命中缓存: '{filename}' (引用匹配，使用已有总结)")
+                    cached["source_pdf_path"] = pdf_path  # 更新文件路径
+                    cached["mtime"] = result_entry["mtime"]  # 更新修改时间
                     all_summaries.append(cached)
                     success_count += 1
                     if cached.get("process_time"):
@@ -150,9 +168,9 @@ def process_all_pdfs(
             
             all_summaries.append(result_entry)
             
-            # 8. 更新缓存
+            # 8. 更新缓存 - 改为使用reference_string作为主键
             if cache_enabled:
-                cache_data[pdf_path] = result_entry.copy()
+                cache_data[reference_string] = result_entry.copy()
                 if (i + 1) % save_interval == 0:
                     save_cache(cache_path, cache_data)
                     pbar.set_description(f"文献总结进度 [成功:{success_count} 失败:{fail_count} 跳过:{skip_count}]")
@@ -168,7 +186,6 @@ def process_all_pdfs(
     print(f"\n文献总结处理完成。总计: {total_files} 篇, 成功: {success_count}, 失败: {fail_count}, 跳过: {skip_count}")
     print(f"平均处理时间: {avg_time} 秒/篇")
 
-    # 在 summarizer.py 中的 process_all_pdfs 函数末尾添加
     # 确保最后调用一次回调，表示所有处理已完成
     if progress_callback:
         progress_callback(total_files-1, total_files, "所有文献处理完成") 

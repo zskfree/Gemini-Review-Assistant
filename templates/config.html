@@ -4,59 +4,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini - 配置管理</title>
+    <title>配置管理 - Gemini文献综述助手</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/common.css">
     <style>
-        .config-section {
-            margin-bottom: 30px;
+        .sidebar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 2rem 1.5rem;
         }
 
-        .test-button {
-            margin-left: 10px;
+        .sidebar h4 {
+            color: white;
+            font-weight: 700;
+            margin-bottom: 2rem;
         }
 
-        .alert-temp {
-            animation: fadeOut 3s forwards;
+        .nav-pills .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            padding: 12px 16px;
         }
 
-        @keyframes fadeOut {
-            0% {
-                opacity: 1;
-            }
-
-            70% {
-                opacity: 1;
-            }
-
-            100% {
-                opacity: 0;
-            }
+        .nav-pills .nav-link:hover {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
         }
 
         .nav-pills .nav-link.active {
-            background-color: #0d6efd;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            backdrop-filter: blur(10px);
         }
 
-        .card-header {
-            background-color: #f8f9fa;
-            font-weight: bold;
-        }
-
-        /* 提示词编辑器优化样式 */
         .prompt-editor {
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            border-radius: 16px;
             background-color: #ffffff;
             margin-bottom: 20px;
             overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .prompt-editor:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
         }
 
         .prompt-editor-header {
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             border-bottom: 1px solid #dee2e6;
-            padding: 12px 16px;
+            padding: 16px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -72,15 +74,6 @@
             gap: 8px;
         }
 
-        .prompt-editor-controls {
-            display: flex;
-            gap: 8px;
-        }
-
-        .prompt-textarea-wrapper {
-            position: relative;
-        }
-
         .prompt-textarea-enhanced {
             min-height: 250px;
             max-height: 400px;
@@ -90,7 +83,7 @@
             resize: vertical;
             border: none;
             border-radius: 0;
-            padding: 16px;
+            padding: 20px;
             width: 100%;
             box-shadow: none;
             background-color: #fafafa;
@@ -98,56 +91,80 @@
         }
 
         .prompt-textarea-enhanced:focus {
+            background-color: #ffffff;
             box-shadow: none;
             border: none;
             outline: none;
-            background-color: #ffffff;
         }
 
         .char-counter {
             position: absolute;
-            bottom: 8px;
-            right: 12px;
+            bottom: 12px;
+            right: 16px;
             background-color: rgba(0, 0, 0, 0.7);
             color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
+            padding: 6px 12px;
+            border-radius: 16px;
             font-size: 11px;
             font-family: monospace;
             font-weight: 500;
         }
 
-        .btn-expand,
-        .btn-copy {
-            font-size: 12px;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-weight: 500;
+        .research-theme-section {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border: 2px solid #ffb74d;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 30px;
         }
 
-        .btn-expand {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
-            color: white;
+        .research-theme-section .form-label {
+            color: #e65100;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .btn-expand:hover {
-            background-color: #0b5ed7;
-            border-color: #0a58ca;
+        .research-theme-section textarea {
+            border: 2px solid #ffb74d;
+            border-radius: 12px;
+            background-color: #fff;
+            transition: all 0.3s ease;
         }
 
-        .btn-copy {
-            background-color: #6c757d;
-            border-color: #6c757d;
-            color: white;
+        .research-theme-section textarea:focus {
+            border-color: #ff9800;
+            box-shadow: 0 0 0 0.2rem rgba(255, 152, 0, 0.25);
         }
 
-        .btn-copy:hover {
-            background-color: #5c636a;
-            border-color: #565e64;
+        .accordion-prompt {
+            border: none !important;
+            margin-bottom: 16px;
         }
 
-        /* 全屏编辑模式优化 */
+        .accordion-button {
+            font-weight: 600;
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 12px !important;
+            padding: 16px 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .accordion-button:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .accordion-button:not(.collapsed) {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border-color: #90caf9;
+            color: #1565c0;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
         .fullscreen-overlay {
             position: fixed;
             top: 0;
@@ -169,166 +186,115 @@
             height: 90%;
             max-width: 1200px;
             background-color: white;
-            border-radius: 12px;
+            border-radius: 16px;
             display: flex;
             flex-direction: column;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
 
-        .fullscreen-header {
-            padding: 16px 24px;
-            border-bottom: 1px solid #dee2e6;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 12px 12px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .sidebar-actions .btn {
+            margin-bottom: 8px;
+            border-radius: 12px;
+            font-weight: 500;
         }
 
-        .fullscreen-textarea {
-            flex: 1;
-            border: none;
-            padding: 24px;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
-            font-size: 14px;
-            line-height: 1.6;
-            resize: none;
-            outline: none;
-            background-color: #fafafa;
+    /* 统一的回到顶部按钮样式 - 适用于所有页面 */
+    .back-to-top {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        font-size: 1.4rem;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1000;
+        cursor: pointer;
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+    }
+    
+    .back-to-top::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: -1;
+    }
+    
+    .back-to-top.show {
+        opacity: 1;
+        visibility: visible;
+        animation: bounceIn 0.6s ease-out;
+    }
+    
+    .back-to-top:hover {
+        transform: translateY(-5px) scale(1.1);
+        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
+        background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
+    }
+    
+    .back-to-top:hover::before {
+        opacity: 1;
+    }
+    
+    .back-to-top:active {
+        transform: translateY(-3px) scale(1.05);
+    }
+    
+    /* 添加弹跳动画 */
+    @keyframes bounceIn {
+        0% {
+            opacity: 0;
+            transform: scale(0.3) translateY(20px);
         }
-
-        .fullscreen-footer {
-            padding: 16px 24px;
-            border-top: 1px solid #dee2e6;
-            background-color: #f8f9fa;
-            border-radius: 0 0 12px 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        50% {
+            opacity: 1;
+            transform: scale(1.05) translateY(-5px);
         }
-
-        /* 手风琴优化 */
-        .accordion-prompt {
-            border: none !important;
-            margin-bottom: 16px;
+        70% {
+            transform: scale(0.9) translateY(0);
         }
-
-        .accordion-button {
-            font-weight: 600;
-            background-color: #ffffff;
-            border: 1px solid #dee2e6;
-            border-radius: 8px !important;
-            padding: 16px 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
         }
-
-        .accordion-button:not(.collapsed) {
-            background-color: #e3f2fd;
-            border-color: #90caf9;
-            color: #1565c0;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* 响应式调整 */
+    @media (max-width: 768px) {
+        .back-to-top {
+            width: 50px;
+            height: 50px;
+            bottom: 20px;
+            right: 20px;
+            font-size: 1.2rem;
         }
-
-        .accordion-button:focus {
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    @media (max-width: 480px) {
+        .back-to-top {
+            width: 45px;
+            height: 45px;
+            bottom: 15px;
+            right: 15px;
+            font-size: 1.1rem;
         }
-
-        .accordion-collapse {
-            border: none !important;
-        }
-
-        .accordion-body {
-            padding: 0 !important;
-            border: none !important;
-        }
-
-        /* 研究主题优化 */
-        .research-theme-section {
-            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
-            border: 1px solid #ffcc02;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 30px;
-        }
-
-        .research-theme-section .form-label {
-            color: #e65100;
-            font-weight: 700;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .research-theme-section textarea {
-            border: 2px solid #ffb74d;
-            border-radius: 8px;
-            background-color: #fff;
-        }
-
-        .research-theme-section textarea:focus {
-            border-color: #ff9800;
-            box-shadow: 0 0 0 0.2rem rgba(255, 152, 0, 0.25);
-        }
-
-        /* 图标样式 */
-        .icon-summary::before {
-            content: '\f15c';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            color: #28a745;
-        }
-
-        .icon-review::before {
-            content: '\f02d';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            color: #007bff;
-        }
-
-        .icon-qualitative::before {
-            content: '\f0ae';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            color: #6f42c1;
-        }
-
-        /* 响应式优化 */
-        @media (max-width: 768px) {
-            .fullscreen-editor {
-                width: 98%;
-                height: 95%;
-            }
-
-            .prompt-editor-header {
-                flex-direction: column;
-                gap: 10px;
-                align-items: stretch;
-            }
-
-            .prompt-editor-controls {
-                justify-content: center;
-            }
-        }
-
-        /* 美化滚动条 */
-        .prompt-textarea-enhanced::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .prompt-textarea-enhanced::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-
-        .prompt-textarea-enhanced::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 4px;
-        }
-
-        .prompt-textarea-enhanced::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
+    }       
     </style>
 </head>
 
@@ -336,9 +302,11 @@
     <div class="container-fluid">
         <div class="row">
             <!-- 侧边导航 -->
-            <div class="col-md-3">
-                <div class="d-flex flex-column flex-shrink-0 p-3 bg-light" style="min-height: 100vh;">
-                    <h4 class="mb-4"><i class="fas fa-cog me-2"></i>配置管理</h4>
+            <div class="col-md-3 p-0">
+                <div class="sidebar">
+                    <h4>
+                        <i class="fas fa-cog me-2"></i>配置管理
+                    </h4>
                     <ul class="nav nav-pills flex-column mb-auto">
                         <li class="nav-item">
                             <a class="nav-link active" data-bs-toggle="pill" href="#llm-config">
@@ -361,12 +329,12 @@
                             </a>
                         </li>
                     </ul>
-                    <hr>
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-primary" id="saveAllBtn">
+                    <hr style="border-color: rgba(255,255,255,0.3);">
+                    <div class="sidebar-actions">
+                        <button class="btn btn-outline-light w-100" id="saveAllBtn">
                             <i class="fas fa-save me-2"></i>保存所有配置
                         </button>
-                        <a href="/" class="btn btn-outline-secondary">
+                        <a href="/" class="btn btn-light w-100">
                             <i class="fas fa-home me-2"></i>返回主页
                         </a>
                     </div>
@@ -381,33 +349,36 @@
                     <div class="tab-content">
                         <!-- LLM配置 -->
                         <div class="tab-pane fade show active" id="llm-config">
-                            <div class="card config-section">
+                            <div class="card content-card">
                                 <div class="card-header">
-                                    <h5 class="mb-0"><i class="fas fa-brain me-2"></i>LLM配置</h5>
+                                    <h5 class="card-title">
+                                        <i class="fas fa-brain me-2"></i>LLM配置
+                                    </h5>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-6">
                                             <label for="model_name" class="form-label">模型名称（文献总结）</label>
-                                            <input type="text" class="form-control" id="model_name"
+                                            <input type="text" class="form-control form-control-modern" id="model_name"
                                                 placeholder="gemini-2.5-flash">
                                         </div>
                                         <div class="col-md-6">
                                             <label for="final_draft_model_name" class="form-label">模型名称（最终生成）</label>
-                                            <input type="text" class="form-control" id="final_draft_model_name"
-                                                placeholder="gemini-2.5-pro">
+                                            <input type="text" class="form-control form-control-modern"
+                                                id="final_draft_model_name" placeholder="gemini-2.5-pro">
                                         </div>
                                     </div>
                                     <div class="row mt-3">
                                         <div class="col-md-8">
                                             <label for="api_key" class="form-label">API密钥</label>
-                                            <input type="password" class="form-control" id="api_key"
+                                            <input type="password" class="form-control form-control-modern" id="api_key"
                                                 placeholder="输入您的Gemini API密钥">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label">&nbsp;</label>
                                             <div>
-                                                <button class="btn btn-outline-primary test-button" id="testApiBtn">
+                                                <button class="btn btn-outline-primary btn-modern w-100"
+                                                    id="testApiBtn">
                                                     <i class="fas fa-plug me-1"></i>测试API连接
                                                 </button>
                                             </div>
@@ -416,13 +387,13 @@
                                     <div class="row mt-3">
                                         <div class="col-md-6">
                                             <label for="temperature" class="form-label">温度参数 (0.0-2.0)</label>
-                                            <input type="number" class="form-control" id="temperature" min="0" max="2"
-                                                step="0.1" placeholder="1.5">
+                                            <input type="number" class="form-control form-control-modern"
+                                                id="temperature" min="0" max="2" step="0.1" placeholder="1.5">
                                         </div>
                                         <div class="col-md-6">
                                             <label for="max_retries" class="form-label">最大重试次数</label>
-                                            <input type="number" class="form-control" id="max_retries" min="1" max="10"
-                                                placeholder="5">
+                                            <input type="number" class="form-control form-control-modern"
+                                                id="max_retries" min="1" max="10" placeholder="5">
                                         </div>
                                     </div>
                                 </div>
@@ -431,33 +402,37 @@
 
                         <!-- 路径配置 -->
                         <div class="tab-pane fade" id="paths-config">
-                            <div class="card config-section">
+                            <div class="card content-card">
                                 <div class="card-header">
-                                    <h5 class="mb-0"><i class="fas fa-folder me-2"></i>路径配置</h5>
+                                    <h5 class="card-title">
+                                        <i class="fas fa-folder me-2"></i>路径配置
+                                    </h5>
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-3">
                                         <label for="pdf_dir" class="form-label">PDF文件目录</label>
-                                        <input type="text" class="form-control" id="pdf_dir" placeholder="PDF_Files/">
+                                        <input type="text" class="form-control form-control-modern" id="pdf_dir"
+                                            placeholder="PDF_Files/">
                                     </div>
                                     <div class="mb-3">
                                         <label for="txt_dir" class="form-label">文本文件目录</label>
-                                        <input type="text" class="form-control" id="txt_dir" placeholder="TXT_Files/">
+                                        <input type="text" class="form-control form-control-modern" id="txt_dir"
+                                            placeholder="TXT_Files/">
                                     </div>
                                     <div class="mb-3">
                                         <label for="cache_file" class="form-label">缓存文件路径</label>
-                                        <input type="text" class="form-control" id="cache_file"
+                                        <input type="text" class="form-control form-control-modern" id="cache_file"
                                             placeholder="cache/summaries_cache.json">
                                     </div>
                                     <div class="mb-3">
                                         <label for="summary_output_file" class="form-label">总结输出文件路径</label>
-                                        <input type="text" class="form-control" id="summary_output_file"
-                                            placeholder="Results_Files/文献总结.json">
+                                        <input type="text" class="form-control form-control-modern"
+                                            id="summary_output_file" placeholder="Results_Files/文献总结.json">
                                     </div>
                                     <div class="mb-3">
                                         <label for="final_output_file" class="form-label">最终输出文件路径</label>
-                                        <input type="text" class="form-control" id="final_output_file"
-                                            placeholder="Results_Files/最终结果.txt">
+                                        <input type="text" class="form-control form-control-modern"
+                                            id="final_output_file" placeholder="Results_Files/最终结果.txt">
                                     </div>
                                 </div>
                             </div>
@@ -465,9 +440,11 @@
 
                         <!-- 提示词配置 -->
                         <div class="tab-pane fade" id="prompts-config">
-                            <div class="card config-section">
+                            <div class="card content-card">
                                 <div class="card-header">
-                                    <h5 class="mb-0"><i class="fas fa-edit me-2"></i>提示词配置</h5>
+                                    <h5 class="card-title">
+                                        <i class="fas fa-edit me-2"></i>提示词配置
+                                    </h5>
                                 </div>
                                 <div class="card-body">
                                     <!-- 研究主题 -->
@@ -480,14 +457,14 @@
                                         <div class="form-text">简要描述您的研究主题和方向</div>
                                     </div>
 
-                                    <!-- 使用手风琴布局的提示词编辑器 -->
+                                    <!-- 提示词编辑器手风琴 -->
                                     <div class="accordion" id="promptsAccordion">
                                         <!-- 文献总结提示词 -->
                                         <div class="accordion-item accordion-prompt">
                                             <h2 class="accordion-header">
                                                 <button class="accordion-button collapsed" type="button"
                                                     data-bs-toggle="collapse" data-bs-target="#summaryPromptCollapse">
-                                                    <i class="fas fa-file-alt me-2 icon-summary"></i>
+                                                    <i class="fas fa-file-alt me-2" style="color: #28a745;"></i>
                                                     文献总结提示词
                                                     <span class="badge bg-success ms-auto me-3"
                                                         id="summaryPromptBadge">0 字符</span>
@@ -503,17 +480,17 @@
                                                                 编辑文献总结提示词
                                                             </div>
                                                             <div class="prompt-editor-controls">
-                                                                <button class="btn btn-copy"
+                                                                <button class="btn btn-sm btn-outline-secondary"
                                                                     onclick="copyToClipboard('summary_prompt')">
                                                                     <i class="fas fa-copy me-1"></i>复制
                                                                 </button>
-                                                                <button class="btn btn-expand"
+                                                                <button class="btn btn-sm btn-primary"
                                                                     onclick="openFullscreenEditor('summary_prompt', '文献总结提示词')">
                                                                     <i class="fas fa-expand me-1"></i>全屏编辑
                                                                 </button>
                                                             </div>
                                                         </div>
-                                                        <div class="prompt-textarea-wrapper">
+                                                        <div class="prompt-textarea-wrapper position-relative">
                                                             <textarea class="prompt-textarea-enhanced"
                                                                 id="summary_prompt" placeholder="输入文献总结提示词..."
                                                                 oninput="updateCharCounter('summary_prompt', 'summaryPromptBadge')"></textarea>
@@ -530,7 +507,7 @@
                                             <h2 class="accordion-header">
                                                 <button class="accordion-button collapsed" type="button"
                                                     data-bs-toggle="collapse" data-bs-target="#reviewPromptCollapse">
-                                                    <i class="fas fa-book me-2 icon-review"></i>
+                                                    <i class="fas fa-book me-2" style="color: #007bff;"></i>
                                                     文献综述生成提示词
                                                     <span class="badge bg-primary ms-auto me-3" id="reviewPromptBadge">0
                                                         字符</span>
@@ -546,17 +523,17 @@
                                                                 编辑文献综述生成提示词
                                                             </div>
                                                             <div class="prompt-editor-controls">
-                                                                <button class="btn btn-copy"
+                                                                <button class="btn btn-sm btn-outline-secondary"
                                                                     onclick="copyToClipboard('review_final_prompt')">
                                                                     <i class="fas fa-copy me-1"></i>复制
                                                                 </button>
-                                                                <button class="btn btn-expand"
+                                                                <button class="btn btn-sm btn-primary"
                                                                     onclick="openFullscreenEditor('review_final_prompt', '文献综述生成提示词')">
                                                                     <i class="fas fa-expand me-1"></i>全屏编辑
                                                                 </button>
                                                             </div>
                                                         </div>
-                                                        <div class="prompt-textarea-wrapper">
+                                                        <div class="prompt-textarea-wrapper position-relative">
                                                             <textarea class="prompt-textarea-enhanced"
                                                                 id="review_final_prompt" placeholder="输入文献综述生成提示词..."
                                                                 oninput="updateCharCounter('review_final_prompt', 'reviewPromptBadge')"></textarea>
@@ -574,11 +551,10 @@
                                                 <button class="accordion-button collapsed" type="button"
                                                     data-bs-toggle="collapse"
                                                     data-bs-target="#qualitativePromptCollapse">
-                                                    <i class="fas fa-microscope me-2 icon-qualitative"></i>
+                                                    <i class="fas fa-microscope me-2" style="color: #6f42c1;"></i>
                                                     定性研究论文生成提示词
-                                                    <span class="badge bg-purple ms-auto me-3"
-                                                        id="qualitativePromptBadge" style="background-color: #6f42c1;">0
-                                                        字符</span>
+                                                    <span class="badge ms-auto me-3" style="background-color: #6f42c1;"
+                                                        id="qualitativePromptBadge">0 字符</span>
                                                 </button>
                                             </h2>
                                             <div id="qualitativePromptCollapse" class="accordion-collapse collapse"
@@ -591,17 +567,17 @@
                                                                 编辑定性研究论文生成提示词
                                                             </div>
                                                             <div class="prompt-editor-controls">
-                                                                <button class="btn btn-copy"
+                                                                <button class="btn btn-sm btn-outline-secondary"
                                                                     onclick="copyToClipboard('qualitative_final_prompt')">
                                                                     <i class="fas fa-copy me-1"></i>复制
                                                                 </button>
-                                                                <button class="btn btn-expand"
+                                                                <button class="btn btn-sm btn-primary"
                                                                     onclick="openFullscreenEditor('qualitative_final_prompt', '定性研究论文生成提示词')">
                                                                     <i class="fas fa-expand me-1"></i>全屏编辑
                                                                 </button>
                                                             </div>
                                                         </div>
-                                                        <div class="prompt-textarea-wrapper">
+                                                        <div class="prompt-textarea-wrapper position-relative">
                                                             <textarea class="prompt-textarea-enhanced"
                                                                 id="qualitative_final_prompt"
                                                                 placeholder="输入定性研究论文生成提示词..."
@@ -620,17 +596,19 @@
 
                         <!-- 缓存配置 -->
                         <div class="tab-pane fade" id="cache-config">
-                            <div class="card config-section">
+                            <div class="card content-card">
                                 <div class="card-header">
-                                    <h5 class="mb-0"><i class="fas fa-database me-2"></i>缓存配置</h5>
+                                    <h5 class="card-title">
+                                        <i class="fas fa-database me-2"></i>缓存配置
+                                    </h5>
                                 </div>
                                 <div class="card-body">
-                                    <div class="form-check">
+                                    <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="cache_enabled">
                                         <label class="form-check-label" for="cache_enabled">
-                                            启用缓存功能
+                                            <strong>启用缓存功能</strong>
                                         </label>
-                                        <div class="form-text">
+                                        <div class="form-text mt-2">
                                             启用后，已处理的文献总结将被缓存，避免重复处理
                                         </div>
                                     </div>
@@ -669,12 +647,19 @@
         </div>
     </div>
 
+    <!-- 统一的回到顶部按钮 -->
+    <button id="backToTopBtn" class="back-to-top" title="回到顶部">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             let currentConfig = {};
             let currentPrompts = {};
             let currentEditingField = '';
+
+            const backToTopBtn = document.getElementById('backToTopBtn');
 
             // 加载当前配置
             loadConfig();
@@ -924,6 +909,24 @@
                     }
                 }, 3000);
             }
+
+            // 监听滚动事件
+            window.addEventListener('scroll', function () {
+                if (window.pageYOffset > 300) {
+                    backToTopBtn.classList.add('show');
+                } else {
+                    backToTopBtn.classList.remove('show');
+                }
+            });
+
+            // 点击回到顶部
+            backToTopBtn.addEventListener('click', function () {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+
         });
     </script>
 </body>

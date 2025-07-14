@@ -360,9 +360,10 @@ def generate_final_background(output_type, config):
         
         if not final_prompt_template:
             processing_status["message"] = f"未找到类型 '{output_type}' 对应的最终生成提示词"
+            processing_status["current_step"] = "生成失败"
             processing_status["is_processing"] = False
             return
-        
+
         # 从现有的总结中获取成功的部分
         successful_summaries = [s for s in processing_status["summaries"] if s.get('status') == 'Success']
         
@@ -378,14 +379,24 @@ def generate_final_background(output_type, config):
                             processing_status["summaries"] = all_summaries
             except Exception as load_err:
                 processing_status["message"] = f"无法加载之前的总结结果: {str(load_err)}"
+                processing_status["current_step"] = "生成失败"
                 processing_status["is_processing"] = False
                 return
-        
+
         # 再次检查是否有成功的总结
         if not successful_summaries:
             processing_status["message"] = "没有成功的文献总结可用于生成最终文稿"
+            processing_status["current_step"] = "生成失败"
             processing_status["is_processing"] = False
             return
+
+        # 根据输出类型设置不同的输出文件路径
+        base_output_file = config['paths']['final_output_file']
+        if output_type == 'qualitative':
+            # 为定性研究论文使用不同的文件名
+            output_file = base_output_file.replace('最终结果.txt', '定性研究论文.txt')
+        else:
+            output_file = base_output_file
         
         # 生成最终文稿
         final_draft, error_msg = final_generator.generate_final_draft(
@@ -395,19 +406,22 @@ def generate_final_background(output_type, config):
             llm_api_func_text=llm_api.call_llm_text_only,
             model_name=config['llm'].get('final_draft_model_name', 'gemini-2.5-flash'),
             api_key=api_key,
-            output_file=config['paths']['final_output_file'],
+            output_file=output_file,
             temperature=config['llm'].get('temperature', 1.2),
             max_retries=config['llm'].get('max_retries', 3)
         )
         
         if final_draft:
             processing_status["final_draft"] = final_draft
+            processing_status["output_file"] = output_file  # 添加输出文件路径
             processing_status["current_step"] = "生成完成"
             processing_status["message"] = f"最终文稿生成完成，长度: {len(final_draft)} 字符"
         else:
+            processing_status["current_step"] = "生成失败"
             processing_status["message"] = f"最终文稿生成失败: {error_msg}"
     
     except Exception as e:
+        processing_status["current_step"] = "生成失败"
         processing_status["message"] = f"生成过程中出错: {str(e)}"
     
     finally:
@@ -466,9 +480,23 @@ def get_status():
 @app.route('/download/<path:filename>')
 def download_file(filename):
     """下载生成的文件"""
-    directory = os.path.dirname(filename)
-    file = os.path.basename(filename)
-    return send_from_directory(directory, file, as_attachment=True)
+    try:
+        # 如果是相对路径，使用当前工作目录
+        if not os.path.isabs(filename):
+            filepath = os.path.join(os.getcwd(), filename)
+        else:
+            filepath = filename
+            
+        directory = os.path.dirname(filepath)
+        file = os.path.basename(filepath)
+        
+        # 检查文件是否存在
+        if not os.path.exists(filepath):
+            return jsonify({"error": "文件不存在"}), 404
+            
+        return send_from_directory(directory, file, as_attachment=True)
+    except Exception as e:
+        return jsonify({"error": f"下载失败: {str(e)}"}), 500
 
 
 if __name__ == '__main__':
