@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>参考文献核对 - Gemini文献综述助手</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .header-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-bottom: 1px solid #dee2e6;
+            border-radius: 12px 12px 0 0 !important;
+            font-weight: 600;
+        }
+
+        .file-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .file-item.matched {
+            border-left: 4px solid #28a745;
+            background-color: #f8fff9;
+        }
+
+        .file-item.unmatched {
+            border-left: 4px solid #dc3545;
+            background-color: #fff8f8;
+        }
+
+        .ref-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border-left: 3px solid #6c757d;
+            background-color: #f8f9fa;
+        }
+
+        .ref-item.used {
+            border-left-color: #28a745;
+            background-color: #f8fff9;
+        }
+
+        .ref-item.unused {
+            border-left-color: #ffc107;
+            background-color: #fffbf0;
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+        }
+
+        .stats-number {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .file-name-input {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+        }
+
+        .btn-rename {
+            background-color: #f39c12;
+            border-color: #f39c12;
+            color: white;
+        }
+
+        .btn-rename:hover {
+            background-color: #e67e22;
+            border-color: #e67e22;
+            color: white;
+        }
+
+        .alert-custom {
+            border-radius: 8px;
+            border: none;
+        }
+
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header-section">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1><i class="fas fa-check-double me-2"></i>参考文献核对</h1>
+                <div>
+                    <a href="/" class="btn btn-outline-light me-2">
+                        <i class="fas fa-home"></i> 返回首页
+                    </a>
+                    <a href="/config" class="btn btn-outline-light">
+                        <i class="fas fa-cog"></i> 配置
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 统计信息 -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <div class="stats-number" id="matchedCount">-</div>
+                        <div>已匹配</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <div class="stats-number" id="totalPdfCount">-</div>
+                        <div>PDF文件总数</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <div class="stats-number" id="totalRefCount">-</div>
+                        <div>参考文献条目</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <div class="stats-number" id="matchRate">-</div>
+                        <div>匹配率</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="card">
+            <div class="card-body">
+                <button class="btn btn-primary" id="checkBtn">
+                    <i class="fas fa-sync-alt me-2"></i>重新检查匹配
+                </button>
+                <button class="btn btn-success ms-2" id="autoMatchBtn">
+                    <i class="fas fa-magic me-2"></i>智能匹配建议
+                </button>
+                <button class="btn btn-warning ms-2" id="acceptBestBtn" style="display: none;">
+                    <i class="fas fa-check-double me-2"></i>一键接受最佳建议
+                </button>
+                <button class="btn btn-outline-secondary ms-2" id="toggleSuggestionsBtn" style="display: none;">
+                    <i class="fas fa-eye-slash me-2"></i>隐藏建议
+                </button>
+            </div>
+        </div>
+
+        <!-- 匹配结果 -->
+        <div class="row">
+            <!-- PDF文件列表 -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-file-pdf me-2"></i>PDF文件
+                            <span class="badge bg-secondary ms-2" id="pdfCountBadge">0</span>
+                        </h5>
+                    </div>
+                    <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                        <div id="pdfFilesList">
+                            <div class="text-center py-3">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">加载中...</span>
+                                </div>
+                                <div class="mt-2">正在加载PDF文件...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 参考文献列表 -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list me-2"></i>参考文献条目
+                            <span class="badge bg-secondary ms-2" id="refCountBadge">0</span>
+                        </h5>
+                    </div>
+                    <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                        <div id="refEntriesList">
+                            <div class="text-center py-3">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">加载中...</span>
+                                </div>
+                                <div class="mt-2">正在加载参考文献...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 未匹配项提醒 -->
+        <div id="unmatchedAlerts"></div>
+    </div>
+
+    <!-- 重命名模态框 -->
+    <div class="modal fade" id="renameModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">重命名PDF文件</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">当前文件名:</label>
+                        <div class="form-control-plaintext" id="currentFileName"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newFileName" class="form-label">新文件名:</label>
+                        <input type="text" class="form-control" id="newFileName" placeholder="输入新的文件名（不需要.pdf扩展名）">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">建议匹配的参考文献:</label>
+                        <select class="form-select" id="suggestedRef">
+                            <option value="">选择可能匹配的参考文献条目</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-rename" id="confirmRenameBtn">
+                        <i class="fas fa-save me-1"></i>确认重命名
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let currentData = null;
+            let currentRenameFile = null;
+
+            // DOM元素
+            const checkBtn = document.getElementById('checkBtn');
+            const autoMatchBtn = document.getElementById('autoMatchBtn');
+            const acceptBestBtn = document.getElementById('acceptBestBtn');
+            const toggleSuggestionsBtn = document.getElementById('toggleSuggestionsBtn');
+            const pdfFilesList = document.getElementById('pdfFilesList');
+            const refEntriesList = document.getElementById('refEntriesList');
+            const unmatchedAlerts = document.getElementById('unmatchedAlerts');
+            const renameModal = new bootstrap.Modal(document.getElementById('renameModal'));
+
+            // 统计元素
+            const matchedCount = document.getElementById('matchedCount');
+            const totalPdfCount = document.getElementById('totalPdfCount');
+            const totalRefCount = document.getElementById('totalRefCount');
+            const matchRate = document.getElementById('matchRate');
+            const pdfCountBadge = document.getElementById('pdfCountBadge');
+            const refCountBadge = document.getElementById('refCountBadge');
+
+            // 重命名模态框元素
+            const currentFileName = document.getElementById('currentFileName');
+            const newFileName = document.getElementById('newFileName');
+            const suggestedRef = document.getElementById('suggestedRef');
+            const confirmRenameBtn = document.getElementById('confirmRenameBtn');
+
+            // 初始加载
+            loadReferenceCheck();
+
+            // 事件监听
+            checkBtn.addEventListener('click', loadReferenceCheck);
+            autoMatchBtn.addEventListener('click', showAutoMatchSuggestions);
+            acceptBestBtn.addEventListener('click', acceptBestSuggestions);
+            confirmRenameBtn.addEventListener('click', confirmRename);
+
+            // 修改原始的加载函数，在加载完成后自动显示建议
+            function loadReferenceCheck() {
+                checkBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>检查中...';
+                checkBtn.disabled = true;
+
+                fetch('/api/reference-check')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            showAlert('danger', '检查失败: ' + data.error);
+                            return;
+                        }
+
+                        currentData = data;
+                        updateStatistics(data);
+                        renderPdfFiles(data.pdf_files);
+                        renderRefEntries(data.ref_entries, data.pdf_files);
+                        showUnmatchedAlerts(data);
+
+                        // 自动显示智能匹配建议
+                        const unmatchedPdfs = data.pdf_files.filter(pdf => !pdf.has_ref);
+                        const unusedRefs = data.ref_entries.filter(ref =>
+                            !data.pdf_files.some(pdf => pdf.has_ref && pdf.ref_text === ref)
+                        );
+                        if (unmatchedPdfs.length > 0) {
+                            generateSuggestions(unmatchedPdfs, unusedRefs);
+                        }
+                    })
+                    .catch(error => {
+                        showAlert('danger', '检查失败: ' + error);
+                    })
+                    .finally(() => {
+                        checkBtn.innerHTML = '<i class="fas fa-sync-alt me-2"></i>重新检查匹配';
+                        checkBtn.disabled = false;
+                    });
+            }
+
+            // 更新统计信息
+            function updateStatistics(data) {
+                matchedCount.textContent = data.matched_count;
+                totalPdfCount.textContent = data.total_pdf_count;
+                totalRefCount.textContent = data.total_ref_count;
+                pdfCountBadge.textContent = data.total_pdf_count;
+                refCountBadge.textContent = data.total_ref_count;
+
+                const rate = data.total_pdf_count > 0 ? 
+                    Math.round((data.matched_count / data.total_pdf_count) * 100) : 0;
+                matchRate.textContent = rate + '%';
+            }
+
+            // 渲染PDF文件列表
+            function renderPdfFiles(pdfFiles) {
+                const html = pdfFiles.map(pdf => {
+                    const statusClass = pdf.has_ref ? 'matched' : 'unmatched';
+                    const statusIcon = pdf.has_ref ? 
+                        '<i class="fas fa-check-circle text-success"></i>' : 
+                        '<i class="fas fa-times-circle text-danger"></i>';
+                    const statusText = pdf.has_ref ? '已匹配' : '未匹配';
+
+                    return `
+                        <div class="file-item ${statusClass}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold">${pdf.filename}</div>
+                                    <div class="text-muted small">路径: ${pdf.path}</div>
+                                    ${pdf.has_ref ? `<div class="text-success small mt-1">匹配: ${pdf.ref_text.substring(0, 100)}...</div>` : ''}
+                                </div>
+                                <div class="ms-3">
+                                    <div class="mb-2">${statusIcon} ${statusText}</div>
+                                    ${!pdf.has_ref ? `<button class="btn btn-sm btn-rename" onclick="openRenameModal('${pdf.path}', '${pdf.filename}')">
+                                        <i class="fas fa-edit"></i> 重命名
+                                    </button>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                pdfFilesList.innerHTML = html;
+            }
+
+            // 渲染参考文献列表
+            function renderRefEntries(refEntries, pdfFiles) {
+                const usedRefs = new Set(pdfFiles.filter(pdf => pdf.has_ref).map(pdf => pdf.ref_text));
+
+                const html = refEntries.map(ref => {
+                    const isUsed = usedRefs.has(ref);
+                    const statusClass = isUsed ? 'used' : 'unused';
+                    const statusIcon = isUsed ? 
+                        '<i class="fas fa-check text-success"></i>' : 
+                        '<i class="fas fa-exclamation-triangle text-warning"></i>';
+
+                    return `
+                        <div class="ref-item ${statusClass}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="flex-grow-1">
+                                    <div class="small">${ref}</div>
+                                </div>
+                                <div class="ms-2">
+                                    ${statusIcon}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                refEntriesList.innerHTML = html;
+            }
+
+            // 显示未匹配项提醒
+            function showUnmatchedAlerts(data) {
+                let alertsHtml = '';
+
+                if (data.missing_refs && data.missing_refs.length > 0) {
+                    alertsHtml += `
+                        <div class="alert alert-warning alert-custom">
+                            <h6><i class="fas fa-exclamation-triangle me-2"></i>发现PDF文件但无对应参考文献条目 (${data.missing_refs.length}个):</h6>
+                            <ul class="mb-0">
+                                ${data.missing_refs.map(ref => `<li>${ref}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                if (data.missing_pdfs && data.missing_pdfs.length > 0) {
+                    alertsHtml += `
+                        <div class="alert alert-info alert-custom">
+                            <h6><i class="fas fa-info-circle me-2"></i>发现参考文献条目但无对应PDF文件 (${data.missing_pdfs.length}个):</h6>
+                            <ul class="mb-0">
+                                ${data.missing_pdfs.map(pdf => `<li>${pdf}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                unmatchedAlerts.innerHTML = alertsHtml;
+            }
+
+            // 打开重命名模态框
+            window.openRenameModal = function(filePath, fileName) {
+                currentRenameFile = { path: filePath, name: fileName };
+                currentFileName.textContent = fileName;
+                newFileName.value = fileName.replace('.pdf', '');
+
+                // 填充建议的参考文献
+                const unusedRefs = currentData.ref_entries.filter(ref => 
+                    !currentData.pdf_files.some(pdf => pdf.has_ref && pdf.ref_text === ref)
+                );
+
+                suggestedRef.innerHTML = '<option value="">选择可能匹配的参考文献条目</option>';
+                unusedRefs.forEach(ref => {
+                    const option = document.createElement('option');
+                    option.value = ref;
+                    option.textContent = ref.length > 80 ? ref.substring(0, 80) + '...' : ref;
+                    suggestedRef.appendChild(option);
+                });
+
+                renameModal.show();
+            };
+
+            // 当选择建议参考文献时，自动提取可能的文件名
+            suggestedRef.addEventListener('change', function () {
+                if (this.value) {
+                    const suggestedFileName = extractFileNameFromReference(this.value);
+                    if (suggestedFileName) {
+                        newFileName.value = suggestedFileName;
+                    }
+                }
+            });
+
+            // 从参考文献中提取合法的文件名（只提取题目）
+            function extractFileNameFromReference(refText) {
+                // 移除引用序号 [1]、(1) 等
+                let cleaned = refText.replace(/^\s*[\[\(]\d+[\]\)]\s*/, '');
+
+                const candidates = [];
+
+                // 1. 英文文献：提取引号中的标题
+                let match = cleaned.match(/[""]([^"""]{5,100})[""]|"([^"]{5,100})"/);
+                if (match) {
+                    const title = (match[1] || match[2]).trim();
+                    // 为包含非法字符的标题生成多个候选项
+                    const titleCandidates = generateSafeFileNameCandidates(title);
+                    candidates.push(...titleCandidates);
+                }
+
+                // 2. 中文文献：提取中文引号或书名号中的标题
+                match = cleaned.match(/[""《]([^"""》\[\]]{3,80})[""》]/);
+                if (match) {
+                    const title = match[1].trim();
+                    const titleCandidates = generateSafeFileNameCandidates(title);
+                    candidates.push(...titleCandidates);
+                }
+
+                // 3. 期刊文章：寻找在作者之后、期刊名之前的标题
+                match = cleaned.match(/\.\s*([^.]{5,80})\s*\.\s*[A-Z\u4e00-\u9fa5][^.]*\s*,?\s*\d{4}/);
+                if (match) {
+                    const title = match[1].trim();
+                    if (!title.match(/^\d+$/) && !title.match(/^[A-Z][a-z]*$/)) {
+                        const titleCandidates = generateSafeFileNameCandidates(title);
+                        candidates.push(...titleCandidates);
+                    }
+                }
+
+                // 4. 书籍：寻找书名（通常在作者后面，没有引号）
+                match = cleaned.match(/^[^.]+\.\s*([^.]{5,80})\s*\.\s*[^:]*:\s*[^,]*,?\s*\d{4}/);
+                if (match) {
+                    const title = match[1].trim();
+                    if (!title.match(/^\d+$/) && !title.match(/^[A-Z][a-z]*$/)) {
+                        const titleCandidates = generateSafeFileNameCandidates(title);
+                        candidates.push(...titleCandidates);
+                    }
+                }
+
+                // 5. 特殊处理：直接提取期刊名（如"重庆大学学报：社会科学版"）
+                match = cleaned.match(/([^.]+学报[：:][\u4e00-\u9fa5]+版?)/);
+                if (match) {
+                    const journalName = match[1].trim();
+                    const journalCandidates = generateSafeFileNameCandidates(journalName);
+                    candidates.push(...journalCandidates);
+                }
+
+                // 6. 提取带有[J]标记的标题
+                match = cleaned.match(/\.([^.\[\]]+)\[J\]/);
+                if (match) {
+                    const title = match[1].trim();
+                    if (title.length >= 5 && title.length <= 80) {
+                        const titleCandidates = generateSafeFileNameCandidates(title);
+                        candidates.push(...titleCandidates);
+                    }
+                }
+
+                // 7. 备用方案：在没有明确标点分隔的情况下，提取可能的标题片段
+                if (candidates.length === 0) {
+                    const titlePatterns = cleaned.match(/[A-Z][a-zA-Z\s]{10,80}(?=[A-Z]|$)|[\u4e00-\u9fa5][^\.,，。]{5,50}[\u4e00-\u9fa5]/g);
+                    if (titlePatterns) {
+                        titlePatterns.forEach(pattern => {
+                            const trimmed = pattern.trim();
+                            if (trimmed.length >= 5 && trimmed.length <= 60 &&
+                                !trimmed.match(/^\d+$/) &&
+                                !trimmed.match(/^[A-Z][a-z]*\s+[A-Z][a-z]*$/)) {
+                                const titleCandidates = generateSafeFileNameCandidates(trimmed);
+                                candidates.push(...titleCandidates);
+                            }
+                        });
+                    }
+                }
+
+                // 过滤并返回最合适的候选项
+                const validCandidates = candidates.filter(c => c && c.length >= 3 && isValidFileName(c)).map(c => c.trim());
+                if (validCandidates.length > 0) {
+                    // 优先返回较长且包含实际内容的标题
+                    const sorted = validCandidates.sort((a, b) => {
+                        // 优先级：长度适中 > 包含年份 > 长度
+                        const aScore = (a.length >= 10 && a.length <= 50 ? 100 : 0) +
+                            (/\d{4}/.test(a) ? 50 : 0) + a.length;
+                        const bScore = (b.length >= 10 && b.length <= 50 ? 100 : 0) +
+                            (/\d{4}/.test(b) ? 50 : 0) + b.length;
+                        return bScore - aScore;
+                    });
+                    return sorted[0];
+                }
+
+                return '';
+            }
+
+            // 为包含非法字符的标题生成安全的文件名候选项
+            function generateSafeFileNameCandidates(title) {
+                if (!title) return [];
+
+                const candidates = [];
+
+                // 1. 如果标题本身就是合法的，直接添加
+                if (isValidFileName(title)) {
+                    candidates.push(title);
+                }
+
+                // 2. 查找所有非法字符的位置（不包括空格）
+                const illegalChars = /[<>:"/\\|?*：——\-\[\]]/g;
+                const illegalPositions = [];
+                let match;
+                while ((match = illegalChars.exec(title)) !== null) {
+                    illegalPositions.push(match.index);
+                }
+
+                if (illegalPositions.length > 0) {
+                    // 3. 提取非法字符之前的部分
+                    const beforeFirst = title.substring(0, illegalPositions[0]).trim();
+                    if (beforeFirst.length >= 3 && isValidFileName(beforeFirst)) {
+                        candidates.push(beforeFirst);
+                    }
+
+                    // 4. 提取非法字符之后的部分
+                    const afterLast = title.substring(illegalPositions[illegalPositions.length - 1] + 1).trim();
+                    if (afterLast.length >= 3 && isValidFileName(afterLast)) {
+                        candidates.push(afterLast);
+                    }
+
+                    // 5. 提取两个非法字符之间的部分
+                    for (let i = 0; i < illegalPositions.length - 1; i++) {
+                        const between = title.substring(illegalPositions[i] + 1, illegalPositions[i + 1]).trim();
+                        if (between.length >= 3 && isValidFileName(between)) {
+                            candidates.push(between);
+                        }
+                    }
+
+                    // 注释掉第6步：生成完全清理后的版本
+                    /*
+                    // 6. 生成完全清理后的版本（移除非法字符但保留空格）
+                    const cleaned = title
+                        .replace(/[<>"/\\|?*：:\[\]]/g, '') // 移除非法字符
+                        .replace(/[——\-]+/g, '') // 移除连字符和破折号
+                        .replace(/[^\w\u4e00-\u9fa5\s]/g, '') // 只保留字母、数字、中文和空格
+                        .replace(/\s+/g, ' ') // 多个空格合并为一个
+                        .trim() // 移除首尾空格
+                        .substring(0, 100);
+
+                    if (cleaned && cleaned.length >= 3 && isValidFileName(cleaned)) {
+                        candidates.push(cleaned);
+                    }
+                    */
+                } else {
+                    // 如果没有非法字符，直接添加原标题
+                    candidates.push(title);
+                }
+
+                // 去重并过滤，确保没有替换字符
+                return [...new Set(candidates)]
+                    .filter(c => c && c.length >= 3 && isValidFileName(c) && !c.includes('_') && !c.includes('[J]'));
+            }
+            
+            // 清理文件名用于匹配（保留原文的同时提供清理版本）
+            function cleanFileNameForMatching(text) {
+                if (!text) return '';
+
+                // 创建清理后的版本，但保留原始语义，不使用替换字符
+                let cleaned = text
+                    .replace(/[<>"/\\|?*]/g, '') // 移除非法字符
+                    .replace(/[\[\]()（）]/g, '') // 移除括号和标记
+                    .replace(/[.。]+$/, '') // 移除末尾的点
+                    .replace(/[：:]/g, '') // 直接移除冒号，不替换
+                    .replace(/[——\-]+/g, '') // 移除连字符、破折号，不替换
+                    .replace(/[^\w\u4e00-\u9fa5\s]/g, '') // 只保留字母、数字、中文和空格
+                    .replace(/\s+/g, ' ') // 多个空格合并为一个
+                    .trim() // 移除首尾空格
+                    .substring(0, 100); // 限制长度
+
+                return cleaned.length >= 3 ? cleaned : '';
+            }     
+            
+            // 检查是否为有效的文件名（不包含Windows非法字符和替换字符）
+            function isValidFileName(text) {
+                if (!text || typeof text !== 'string') return false;
+
+                // Windows文件名中的非法字符（不包括空格）和我们要避免的替换字符
+                const illegalChars = /[<>:"/\\|?*_]/;
+
+                // 检查是否包含非法字符或替换字符
+                if (illegalChars.test(text)) return false;
+
+                // 检查是否包含标记符号
+                if (text.includes('[J]') || text.includes('J]')) return false;
+
+                // 检查是否以点结尾
+                if (text.endsWith('.')) return false;
+
+                // 检查长度
+                if (text.length < 1 || text.length > 255) return false;
+
+                // 检查是否为Windows保留名称
+                const reservedNames = ['CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'];
+                if (reservedNames.includes(text.toUpperCase())) return false;
+
+                return true;
+            }
+
+            // 改进的相似度匹配函数，支持模糊匹配
+            function calculateFlexibleSimilarity(fileName, extractedName, originalRef) {
+                if (!fileName || !extractedName) return 0;
+                
+                const fileNameLower = fileName.toLowerCase();
+                const extractedLower = extractedName.toLowerCase();
+                
+                // 1. 直接匹配
+                if (fileNameLower === extractedLower) return 1.0;
+                
+                // 2. 检查是否包含关系
+                if (fileNameLower.includes(extractedLower) || extractedLower.includes(fileNameLower)) {
+                    const shorter = fileNameLower.length < extractedLower.length ? fileNameLower : extractedLower;
+                    const longer = fileNameLower.length >= extractedLower.length ? fileNameLower : extractedLower;
+                    return (shorter.length / longer.length) * 0.9;
+                }
+                
+                // 3. 清理后的匹配（移除分隔符但保留空格）
+                const cleanedFileName = fileNameLower.replace(/[_\-:：——]/g, '');
+                const cleanedExtracted = extractedLower.replace(/[_\-:：——]/g, '');
+                
+                if (cleanedFileName === cleanedExtracted) return 0.95;
+                if (cleanedFileName.includes(cleanedExtracted) || cleanedExtracted.includes(cleanedFileName)) {
+                    const shorter = cleanedFileName.length < cleanedExtracted.length ? cleanedFileName : cleanedExtracted;
+                    const longer = cleanedFileName.length >= cleanedExtracted.length ? cleanedFileName : cleanedExtracted;
+                    return (shorter.length / longer.length) * 0.85;
+                }
+                
+                // 4. 分词匹配（对于中文特别有效）
+                const fileWords = fileNameLower.split(/[_\-:：——]+/).filter(w => w.length > 1);
+                const extractedWords = extractedLower.split(/[_\-:：——]+/).filter(w => w.length > 1);
+                
+                if (fileWords.length > 0 && extractedWords.length > 0) {
+                    let matchedWords = 0;
+                    let totalWords = Math.max(fileWords.length, extractedWords.length);
+                    
+                    for (const fileWord of fileWords) {
+                        for (const extractedWord of extractedWords) {
+                            if (fileWord === extractedWord || 
+                                fileWord.includes(extractedWord) || 
+                                extractedWord.includes(fileWord)) {
+                                matchedWords++;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    const wordMatchScore = matchedWords / totalWords;
+                    if (wordMatchScore > 0.3) return wordMatchScore * 0.8;
+                }
+                
+                // 5. 特殊处理：检查文件名是否包含提取名称的主要部分
+                const fileNameParts = fileNameLower.split(/[-_]+/).filter(p => p.length > 2);
+                const extractedParts = extractedLower.split(/[-_:：——]+/).filter(p => p.length > 2);
+                
+                let partialMatches = 0;
+                for (const filePart of fileNameParts) {
+                    for (const extractedPart of extractedParts) {
+                        if (filePart.includes(extractedPart) || extractedPart.includes(filePart)) {
+                            partialMatches++;
+                            break;
+                        }
+                    }
+                }
+                
+                if (partialMatches > 0 && extractedParts.length > 0) {
+                    const partialScore = partialMatches / extractedParts.length;
+                    if (partialScore > 0.5) return partialScore * 0.7;
+                }
+                
+                // 6. 编辑距离匹配
+                return calculateStringSimilarity(fileNameLower, extractedLower);
+            }
+
+            // 清理文件名，移除非法字符
+            function cleanFileName(text) {
+                if (!text) return '';
+
+                // 移除或替换Windows文件名中的非法字符
+                let cleaned = text
+                    .replace(/[<>:"/\\|?*]/g, '') // 移除完全非法的字符
+                    .replace(/[\[\]()（）]/g, '') // 移除括号
+                    .replace(/[.。]+$/, '') // 移除末尾的点
+                    .replace(/\s+/g, '_') // 空格替换为下划线
+                    .replace(/[^\w\u4e00-\u9fa5_-]/g, '') // 只保留字母、数字、中文、下划线和连字符
+                    .replace(/^[_-]+|[_-]+$/g, '') // 移除开头和结尾的下划线/连字符
+                    .replace(/_{2,}/g, '_') // 多个下划线合并为一个
+                    .substring(0, 100); // 限制长度
+
+                return cleaned;
+            }
+
+            // 确认重命名
+            function confirmRename() {
+                if (!currentRenameFile || !newFileName.value.trim()) {
+                    showAlert('warning', '请输入新的文件名');
+                    return;
+                }
+
+                confirmRenameBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>重命名中...';
+                confirmRenameBtn.disabled = true;
+
+                fetch('/api/rename-file', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        old_path: currentRenameFile.path,
+                        new_filename: newFileName.value.trim()
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        showAlert('danger', '重命名失败: ' + data.error);
+                    } else {
+                        showAlert('success', '文件重命名成功');
+                        renameModal.hide();
+                        // 重新加载检查结果
+                        setTimeout(loadReferenceCheck, 500);
+                    }
+                })
+                .catch(error => {
+                    showAlert('danger', '重命名失败: ' + error);
+                })
+                .finally(() => {
+                    confirmRenameBtn.innerHTML = '<i class="fas fa-save me-1"></i>确认重命名';
+                    confirmRenameBtn.disabled = false;
+                });
+            }
+
+            // 改进的智能匹配建议函数
+            function showAutoMatchSuggestions() {
+                if (!currentData) return;
+
+                const unmatchedPdfs = currentData.pdf_files.filter(pdf => !pdf.has_ref);
+                const unusedRefs = currentData.ref_entries.filter(ref =>
+                    !currentData.pdf_files.some(pdf => pdf.has_ref && pdf.ref_text === ref)
+                );
+
+                generateSuggestions(unmatchedPdfs, unusedRefs);
+            }
+
+            // 修改生成建议函数，提供多个重命名选项并显示批量操作按钮
+            function generateSuggestions(unmatchedPdfs, unusedRefs) {
+                let suggestionsHtml = '';
+                let hasValidSuggestions = false;
+                let bestSuggestions = []; // 存储每个文件的最佳建议
+
+                if (unmatchedPdfs.length === 0) {
+                    suggestionsHtml = `
+                        <div class="alert alert-success alert-custom mb-3">
+                            <h6><i class="fas fa-check-circle me-2"></i>恭喜！所有PDF文件都已匹配参考文献</h6>
+                            <p class="mb-0">点击"重新检查匹配"可以刷新状态。</p>
+                        </div>
+                    `;
+                    acceptBestBtn.style.display = 'none';
+                    toggleSuggestionsBtn.style.display = 'none';
+                } else {
+                    unmatchedPdfs.forEach(pdf => {
+                        const fileName = pdf.filename_without_ext;
+
+                        // 为每个未匹配的PDF寻找最佳匹配
+                        const allMatches = [];
+
+                        unusedRefs.forEach(ref => {
+                            // 为每个参考文献生成多个候选文件名
+                            const titleCandidates = generateAllTitleCandidates(ref);
+
+                            titleCandidates.forEach(candidate => {
+                                const similarity = calculateFlexibleSimilarity(fileName, candidate, ref);
+                                if (similarity > 0.15) {
+                                    allMatches.push({
+                                        ref: ref,
+                                        extractedName: candidate,
+                                        similarity: similarity,
+                                        score: similarity
+                                    });
+                                }
+                            });
+                        });
+
+                        // 排序并去重
+                        const matches = allMatches
+                            .sort((a, b) => b.score - a.score)
+                            .filter((match, index, array) => {
+                                // 去重：如果有相同的提取名称，只保留得分最高的
+                                return array.findIndex(m => m.extractedName === match.extractedName) === index;
+                            })
+                            .slice(0, 5); // 显示前5个最佳匹配
+
+                        if (matches.length > 0) {
+                            hasValidSuggestions = true;
+
+                            // 记录最佳建议（用于批量操作）
+                            const bestMatch = matches[0];
+                            if (bestMatch.score >= 0.3) { // 只有相似度足够高的才加入批量操作
+                                bestSuggestions.push({
+                                    pdf: pdf,
+                                    match: bestMatch
+                                });
+                            }
+
+                            suggestionsHtml += `
+                                <div class="alert alert-info alert-custom mb-3" id="suggestions-${pdf.filename.replace(/[^a-zA-Z0-9]/g, '_')}">
+                                    <h6 class="fw-bold"><i class="fas fa-file-pdf me-2"></i>${pdf.filename}</h6>
+                                    <div class="mt-2">建议重命名为以下之一：</div>
+                                    <div class="mt-2">
+                                        ${matches.map((match, index) => `
+                                            <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded ${index === 0 ? 'border border-warning' : ''}" id="match-${pdf.filename.replace(/[^a-zA-Z0-9]/g, '_')}-${index}">
+                                                <div class="flex-grow-1">
+                                                    <strong class="text-primary">${escapeHtml(match.extractedName)}</strong>
+                                                    ${index === 0 ? '<span class="badge bg-warning text-dark ms-2">最佳匹配</span>' : ''}
+                                                    <div class="small text-muted mt-1">${escapeHtml(match.ref.substring(0, 120))}${match.ref.length > 120 ? '...' : ''}</div>
+                                                </div>
+                                                <div class="ms-2 text-end">
+                                                    <span class="badge bg-success">${Math.round(match.score * 100)}%</span>
+                                                    <br>
+                                                    <button class="btn btn-sm btn-outline-primary mt-1" 
+                                                            onclick="quickRenameWithUpdate('${pdf.path.replace(/'/g, "\\'")}', '${pdf.filename.replace(/'/g, "\\'")}', '${escapeForJs(match.extractedName)}', '${escapeForJs(match.ref)}', '${pdf.filename.replace(/[^a-zA-Z0-9]/g, '_')}')">
+                                                        <i class="fas fa-magic"></i> 应用
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+
+                    // 显示/隐藏批量操作按钮
+                    if (bestSuggestions.length > 0) {
+                        acceptBestBtn.style.display = 'inline-block';
+                        acceptBestBtn.innerHTML = `<i class="fas fa-check-double me-2"></i>一键接受最佳建议 (${bestSuggestions.length}个)`;
+
+                        // 将最佳建议存储到全局变量中
+                        window.currentBestSuggestions = bestSuggestions;
+                    } else {
+                        acceptBestBtn.style.display = 'none';
+                    }
+
+                    if (hasValidSuggestions) {
+                        toggleSuggestionsBtn.style.display = 'inline-block';
+                    }
+                }
+
+                // 更新建议区域
+                const suggestionsContainer = document.getElementById('smartSuggestions');
+                if (!suggestionsContainer) {
+                    const newContainer = document.createElement('div');
+                    newContainer.id = 'smartSuggestions';
+                    newContainer.innerHTML = suggestionsHtml;
+                    unmatchedAlerts.appendChild(newContainer);
+                } else {
+                    suggestionsContainer.innerHTML = suggestionsHtml;
+                }
+
+                if (!hasValidSuggestions && unmatchedPdfs.length > 0) {
+                    showAlert('info', '未找到合适的匹配建议。请手动检查文件名和参考文献条目。');
+                    acceptBestBtn.style.display = 'none';
+                    toggleSuggestionsBtn.style.display = 'none';
+                }
+            }
+         
+            // 一键接受最佳建议
+            function acceptBestSuggestions() {
+                if (!window.currentBestSuggestions || window.currentBestSuggestions.length === 0) {
+                    showAlert('warning', '没有可接受的建议');
+                    return;
+                }
+
+                const suggestions = window.currentBestSuggestions;
+                const confirmMessage = `确定要批量接受以下 ${suggestions.length} 个最佳建议吗？\n\n` +
+                    suggestions.map(s => `${s.pdf.filename} → ${s.match.extractedName}.pdf (${Math.round(s.match.score * 100)}%)`).join('\n');
+
+                if (!confirm(confirmMessage)) {
+                    return;
+                }
+
+                // 禁用按钮并显示进度
+                acceptBestBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>正在批量重命名...';
+                acceptBestBtn.disabled = true;
+
+                // 批量处理重命名
+                processBatchRename(suggestions, 0);
+            }
+
+            // 批量处理重命名（递归处理避免并发冲突）
+            function processBatchRename(suggestions, index) {
+                if (index >= suggestions.length) {
+                    // 所有重命名完成
+                    showAlert('success', `🎉 批量重命名完成！成功处理 ${index} 个文件`);
+
+                    // 重新加载数据
+                    setTimeout(() => {
+                        loadReferenceCheck();
+                    }, 1000);
+
+                    return;
+                }
+
+                const suggestion = suggestions[index];
+                const progress = `(${index + 1}/${suggestions.length})`;
+
+                acceptBestBtn.innerHTML = `<i class="fas fa-spinner fa-spin me-2"></i>正在处理 ${progress}...`;
+
+                fetch('/api/rename-file', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        old_path: suggestion.pdf.path,
+                        new_filename: suggestion.match.extractedName
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            console.error(`重命名失败 ${suggestion.pdf.filename}:`, data.error);
+                            showAlert('warning', `文件 ${suggestion.pdf.filename} 重命名失败: ${data.error}`);
+                        } else {
+                            console.log(`重命名成功: ${suggestion.pdf.filename} → ${data.new_filename}`);
+
+                            // 移除对应的建议卡片
+                            const suggestionElement = document.getElementById(`suggestions-${suggestion.pdf.filename.replace(/[^a-zA-Z0-9]/g, '_')}`);
+                            if (suggestionElement) {
+                                suggestionElement.style.opacity = '0.5';
+                                suggestionElement.innerHTML = `
+                                <div class="alert alert-success mb-0">
+                                    <i class="fas fa-check me-2"></i>已重命名为: ${data.new_filename}
+                                </div>
+                            `;
+                            }
+                        }
+
+                        // 处理下一个文件
+                        setTimeout(() => {
+                            processBatchRename(suggestions, index + 1);
+                        }, 500); // 延迟500ms避免过快请求
+                    })
+                    .catch(error => {
+                        console.error(`重命名失败 ${suggestion.pdf.filename}:`, error);
+                        showAlert('danger', `文件 ${suggestion.pdf.filename} 重命名失败: ${error}`);
+
+                        // 继续处理下一个文件
+                        setTimeout(() => {
+                            processBatchRename(suggestions, index + 1);
+                        }, 500);
+                    });
+            }
+
+            // 切换建议显示/隐藏
+            toggleSuggestionsBtn.addEventListener('click', function () {
+                const suggestionsContainer = document.getElementById('smartSuggestions');
+                if (suggestionsContainer) {
+                    if (suggestionsContainer.style.display === 'none') {
+                        suggestionsContainer.style.display = 'block';
+                        this.innerHTML = '<i class="fas fa-eye-slash me-2"></i>隐藏建议';
+                    } else {
+                        suggestionsContainer.style.display = 'none';
+                        this.innerHTML = '<i class="fas fa-eye me-2"></i>显示建议';
+                    }
+                }
+            });            
+
+            // 为参考文献生成所有可能的标题候选项
+            function generateAllTitleCandidates(refText) {
+                const candidates = [];
+
+                // 移除引用序号
+                let cleaned = refText.replace(/^\s*[\[\(]\d+[\]\)]\s*/, '');
+
+                // 1. 提取所有可能的标题
+                const titlePatterns = [
+                    /[""]([^"""]{5,100})[""]/, // 英文引号
+                    /"([^"]{5,100})"/, // 普通引号
+                    /[""《]([^"""》\[\]]{3,80})[""》]/, // 中文引号和书名号
+                    /\.\s*([^.]{5,80})\s*\.\s*[A-Z\u4e00-\u9fa5][^.]*\s*,?\s*\d{4}/, // 期刊格式
+                    /\.([^.\[\]]+)\[J\]/, // [J]标记
+                    /([^.]+学报[：:][\u4e00-\u9fa5]+版?)/ // 期刊名
+                ];
+
+                titlePatterns.forEach(pattern => {
+                    const match = cleaned.match(pattern);
+                    if (match && match[1]) {
+                        let title = match[1].trim();
+
+                        // 特殊处理：移除[J]等标记
+                        title = title.replace(/\[J\].*$/, '').trim();
+
+                        if (title.length >= 3) {
+                            // 为每个提取的标题生成安全的文件名候选项
+                            const safeCandidates = generateSafeFileNameCandidates(title);
+                            candidates.push(...safeCandidates);
+                        }
+                    }
+                });
+
+                // 去重并过滤，确保所有候选项都是纯净的
+                return [...new Set(candidates)]
+                    .filter(c => c && c.length >= 3 && isValidFileName(c) &&
+                        !c.includes('_') && !c.includes('[J]') && !c.includes('J]'));
+            }
+
+            // HTML转义函数
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            // JavaScript字符串转义函数
+            function escapeForJs(text) {
+                return text.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\\/g, '\\\\');
+            }
+
+            // 计算字符串相似度（编辑距离）
+            function calculateStringSimilarity(str1, str2) {
+                if (!str1 || !str2) return 0;
+                if (str1 === str2) return 1;
+
+                const len1 = str1.length;
+                const len2 = str2.length;
+                const matrix = Array(len1 + 1).fill().map(() => Array(len2 + 1).fill(0));
+
+                for (let i = 0; i <= len1; i++) matrix[i][0] = i;
+                for (let j = 0; j <= len2; j++) matrix[0][j] = j;
+
+                for (let i = 1; i <= len1; i++) {
+                    for (let j = 1; j <= len2; j++) {
+                        if (str1[i - 1] === str2[j - 1]) {
+                            matrix[i][j] = matrix[i - 1][j - 1];
+                        } else {
+                            matrix[i][j] = Math.min(
+                                matrix[i - 1][j - 1] + 1,
+                                matrix[i][j - 1] + 1,
+                                matrix[i - 1][j] + 1
+                            );
+                        }
+                    }
+                }
+
+                const distance = matrix[len1][len2];
+                const maxLen = Math.max(len1, len2);
+                return maxLen === 0 ? 1 : (maxLen - distance) / maxLen;
+            }
+
+            // 计算子串匹配度
+            function calculateSubstringMatch(str1, str2) {
+                if (!str1 || !str2) return 0;
+                if (str1 === str2) return 1;
+
+                // 检查是否有一个是另一个的子串
+                if (str1.includes(str2) || str2.includes(str1)) {
+                    const shorter = str1.length < str2.length ? str1 : str2;
+                    const longer = str1.length >= str2.length ? str1 : str2;
+                    return shorter.length / longer.length;
+                }
+
+                // 检查最长公共子序列
+                let maxMatch = 0;
+                for (let i = 0; i < str1.length - 2; i++) {
+                    for (let j = i + 3; j <= str1.length; j++) {
+                        const substr = str1.substring(i, j);
+                        if (str2.includes(substr)) {
+                            maxMatch = Math.max(maxMatch, substr.length);
+                        }
+                    }
+                }
+
+                return maxMatch / Math.max(str1.length, str2.length);
+            }
+
+            // 原有的calculateSimilarity函数保持不变，作为备用
+            function calculateSimilarity(str1, str2) {
+                return calculateStringSimilarity(str1, str2);
+            }
+
+            // 计算两个字符串的相似度
+            function calculateSimilarity(str1, str2) {
+                if (!str1 || !str2) return 0;
+
+                // 计算编辑距离
+                const len1 = str1.length;
+                const len2 = str2.length;
+                const matrix = Array(len1 + 1).fill().map(() => Array(len2 + 1).fill(0));
+
+                for (let i = 0; i <= len1; i++) matrix[i][0] = i;
+                for (let j = 0; j <= len2; j++) matrix[0][j] = j;
+
+                for (let i = 1; i <= len1; i++) {
+                    for (let j = 1; j <= len2; j++) {
+                        if (str1[i - 1] === str2[j - 1]) {
+                            matrix[i][j] = matrix[i - 1][j - 1];
+                        } else {
+                            matrix[i][j] = Math.min(
+                                matrix[i - 1][j - 1] + 1,
+                                matrix[i][j - 1] + 1,
+                                matrix[i - 1][j] + 1
+                            );
+                        }
+                    }
+                }
+
+                const distance = matrix[len1][len2];
+                const maxLen = Math.max(len1, len2);
+                return maxLen === 0 ? 1 : (maxLen - distance) / maxLen;
+            }
+            
+            // 改进的快速重命名功能，支持自动更新建议
+            window.quickRenameWithUpdate = function (filePath, fileName, suggestedName, refText, fileId) {
+                if (confirm(`确定要将文件 "${fileName}" 重命名为 "${suggestedName}.pdf" 吗？`)) {
+                    const renameBtn = event.target;
+                    const originalText = renameBtn.innerHTML;
+                    renameBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    renameBtn.disabled = true;
+
+                    fetch('/api/rename-file', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            old_path: filePath,
+                            new_filename: suggestedName
+                        })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.error) {
+                                showAlert('danger', '重命名失败: ' + data.error);
+                                renameBtn.innerHTML = originalText;
+                                renameBtn.disabled = false;
+                            } else {
+                                showAlert('success', `文件已成功重命名为: ${data.new_filename}`);
+
+                                // 重新加载数据并更新建议
+                                fetch('/api/reference-check')
+                                    .then(response => response.json())
+                                    .then(newData => {
+                                        if (!newData.error) {
+                                            currentData = newData;
+                                            updateStatistics(newData);
+                                            renderPdfFiles(newData.pdf_files);
+                                            renderRefEntries(newData.ref_entries, newData.pdf_files);
+                                            showUnmatchedAlerts(newData);
+
+                                            // 自动更新智能建议
+                                            const unmatchedPdfs = newData.pdf_files.filter(pdf => !pdf.has_ref);
+                                            const unusedRefs = newData.ref_entries.filter(ref =>
+                                                !newData.pdf_files.some(pdf => pdf.has_ref && pdf.ref_text === ref)
+                                            );
+                                            generateSuggestions(unmatchedPdfs, unusedRefs);
+
+                                            // 显示成功消息
+                                            if (unmatchedPdfs.length === 0) {
+                                                showAlert('success', '🎉 所有文件都已匹配！');
+                                            }
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('更新数据失败:', error);
+                                        // 如果获取新数据失败，至少移除已处理的建议项
+                                        const suggestionElement = document.getElementById(`suggestions-${fileId}`);
+                                        if (suggestionElement) {
+                                            suggestionElement.remove();
+                                        }
+                                    });
+                            }
+                        })
+                        .catch(error => {
+                            showAlert('danger', '重命名失败: ' + error);
+                            renameBtn.innerHTML = originalText;
+                            renameBtn.disabled = false;
+                        });
+                }
+            };
+
+            // 保持原有的快速重命名功能作为备用
+            window.quickRename = function (filePath, fileName, suggestedName, refText) {
+                quickRenameWithUpdate(filePath, fileName, suggestedName, refText, fileName.replace(/[^a-zA-Z0-9]/g, '_'));
+            };
+
+
+            // 显示提醒消息
+            function showAlert(type, message) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+                alertDiv.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                
+                // 插入到容器顶部
+                const container = document.querySelector('.container');
+                container.insertBefore(alertDiv, container.firstChild);
+
+                // 自动消失
+                setTimeout(() => {
+                    if (alertDiv && alertDiv.parentNode) {
+                        alertDiv.remove();
+                    }
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+
+</html>

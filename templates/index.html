@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini - 文献综述（定性研究论文）生成助手</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .pdf-item {
+            padding: 10px;
+            margin-bottom: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .pdf-item.has-ref {
+            border-left: 4px solid #28a745;
+        }
+
+        .pdf-item.no-ref {
+            border-left: 4px solid #dc3545;
+        }
+
+        .step-card {
+            margin-bottom: 20px;
+        }
+
+        .result-card {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        #final-draft-content {
+            white-space: pre-wrap;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .summary-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .summary-success {
+            border-left: 4px solid #28a745;
+        }
+
+        .summary-failure {
+            border-left: 4px solid #dc3545;
+        }
+
+        .summary-skipped {
+            border-left: 4px solid #ffc107;
+        }
+
+        .summary-preview {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        /* 回到顶部按钮样式 */
+        #backToTopBtn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+            cursor: pointer;
+        }
+
+        #backToTopBtn.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #backToTopBtn:hover {
+            background-color: #0b5ed7;
+            transform: scale(1.1);
+        }
+
+        #backToTopBtn:active {
+            transform: scale(0.95);
+        }
+
+        /* 添加箭头图标 */
+        #backToTopBtn::before {
+            content: "↑";
+            font-size: 20px;
+            font-weight: bold;
+            line-height: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="text-center flex-grow-1">Gemini 文献综述（定性研究论文）生成助手</h1>
+            <div>
+                <a href="/reference-check" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-check-double"></i> 参考文献核对
+                </a>
+                <a href="/config" class="btn btn-outline-primary">
+                    <i class="fas fa-cog"></i> 配置
+                </a>
+            </div>
+        </div>
+
+        <!-- 步骤导航 -->
+        <ul class="nav nav-tabs mb-4" id="stepTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="step1-tab" data-bs-toggle="tab" data-bs-target="#step1"
+                    type="button" role="tab" aria-controls="step1" aria-selected="true">1. 选择文献</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="step2-tab" data-bs-toggle="tab" data-bs-target="#step2" type="button"
+                    role="tab" aria-controls="step2" aria-selected="false">2. 文献总结</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="step3-tab" data-bs-toggle="tab" data-bs-target="#step3" type="button"
+                    role="tab" aria-controls="step3" aria-selected="false">3. 生成文稿</button>
+            </li>
+        </ul>
+
+        <!-- 步骤内容 -->
+        <div class="tab-content" id="stepsContent">
+            <!-- 步骤1: 选择文献 -->
+            <div class="tab-pane fade show active" id="step1" role="tabpanel" aria-labelledby="step1-tab">
+                <div class="card step-card">
+                    <div class="card-header">
+                        <h5>选择要处理的PDF文件</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <strong>研究主题:</strong> {{ research_theme }}
+                        </div>
+
+                        {% if pdf_files %}
+                        <div class="mb-3">
+                            <button class="btn btn-sm btn-outline-primary" id="selectAllBtn">全选</button>
+                            <button class="btn btn-sm btn-outline-primary" id="selectWithRefsBtn">选择有引用的</button>
+                            <button class="btn btn-sm btn-outline-secondary" id="clearSelectionBtn">清除选择</button>
+                        </div>
+
+                        <div class="pdf-list">
+                            {% for pdf in pdf_files %}
+                            <div class="pdf-item {% if pdf.has_ref %}has-ref{% else %}no-ref{% endif %}">
+                                <div class="form-check">
+                                    <input class="form-check-input pdf-checkbox" type="checkbox" value="{{ pdf.path }}"
+                                        id="pdf-{{ loop.index }}" {% if not pdf.has_ref %}disabled{% endif %}>
+                                    <label class="form-check-label" for="pdf-{{ loop.index }}">
+                                        {{ pdf.filename }}
+                                        {% if pdf.has_ref %}
+                                        <span class="badge bg-success">✓ 引用</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">✗ 无引用</span>
+                                        {% endif %}
+                                    </label>
+                                </div>
+                                <div class="pdf-ref small text-muted mt-1">{{ pdf.ref_text }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="alert alert-warning">
+                            未找到任何PDF文件。请检查PDF文件夹设置。
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-primary" id="processSelectedBtn">处理选中的PDF</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 步骤2: 文献总结 -->
+            <div class="tab-pane fade" id="step2" role="tabpanel" aria-labelledby="step2-tab">
+                <div class="card step-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">文献总结进度</h5>
+                        <button class="btn btn-primary d-none" id="goToFinalBtn">继续生成最终文稿</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="processingStatusArea">
+                            <div class="alert alert-info">
+                                请在步骤1中选择PDF文件并开始处理。
+                            </div>
+                        </div>
+
+                        <div id="progressArea" class="d-none">
+                            <div class="alert alert-info mb-3">
+                                <p id="currentStepInfo">当前步骤: <span id="currentStep"></span></p>
+                                <p id="statusMessage"></p>
+                                <p id="progressText">处理进度: <span id="currentCount">0</span>/<span
+                                        id="totalCount">0</span></p>
+                                <p id="remainingTimeText">预计剩余时间: <span id="remainingTime">计算中...</span></p>
+                            </div>
+                        </div>
+
+                        <div id="summariesArea" class="mt-4 d-none">
+                            <h5>文献总结结果:</h5>
+                            <div id="summariesList"></div>
+                        </div>
+                    </div>
+                    <!-- 移除了这里原来的 card-footer 部分 -->
+                </div>
+            </div>
+
+            <!-- 步骤3: 生成文稿 -->
+            <div class="tab-pane fade" id="step3" role="tabpanel" aria-labelledby="step3-tab">
+                <div class="card step-card">
+                    <div class="card-header">
+                        <h5>生成最终文稿</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="finalGenerationForm">
+                            <p>请选择要生成的文稿类型:</p>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="outputType" id="outputTypeReview"
+                                    value="review" checked>
+                                <label class="form-check-label" for="outputTypeReview">
+                                    文献综述 (Literature Review)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="outputType"
+                                    id="outputTypeQualitative" value="qualitative">
+                                <label class="form-check-label" for="outputTypeQualitative">
+                                    定性研究论文
+                                </label>
+                            </div>
+                            <button class="btn btn-primary mt-3" id="generateFinalBtn">生成最终文稿</button>
+                        </div>
+
+                        <div id="finalGenerationStatus" class="d-none">
+                            <div class="alert alert-info" id="finalStatusMessage">
+                                正在生成最终文稿，请稍候...
+                            </div>
+                        </div>
+
+                        <div id="finalDraftArea" class="result-card d-none">
+                            <h5>生成的最终文稿:</h5>
+                            <div id="final-draft-content"></div>
+                            <div class="mt-3">
+                                <a id="downloadFinalBtn" href="/download/Results_Files/最终结果.txt"
+                                    class="btn btn-success">下载文稿</a>
+                                <button id="regenerateFinalBtn" class="btn btn-primary ms-2">重新生成文稿</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 回到顶部按钮 -->
+    <button id="backToTopBtn" title="回到顶部"></button>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // 全局变量
+            let currentlyProcessing = false;
+            let statusInterval = null;
+
+            // UI元素引用
+            const stepTabs = document.getElementById('stepTabs');
+            const step1Tab = document.getElementById('step1-tab');
+            const step2Tab = document.getElementById('step2-tab');
+            const step3Tab = document.getElementById('step3-tab');
+
+            // 步骤1相关元素
+            const selectAllBtn = document.getElementById('selectAllBtn');
+            const selectWithRefsBtn = document.getElementById('selectWithRefsBtn');
+            const clearSelectionBtn = document.getElementById('clearSelectionBtn');
+            const processSelectedBtn = document.getElementById('processSelectedBtn');
+            const pdfCheckboxes = document.querySelectorAll('.pdf-checkbox');
+
+            // 步骤2相关元素
+            const processingStatusArea = document.getElementById('processingStatusArea');
+            const progressArea = document.getElementById('progressArea');
+            const currentStep = document.getElementById('currentStep');
+            const statusMessage = document.getElementById('statusMessage');
+            const progressBar = document.getElementById('progressBar');
+            const currentCount = document.getElementById('currentCount');
+            const totalCount = document.getElementById('totalCount');
+            const summariesArea = document.getElementById('summariesArea');
+            const summariesList = document.getElementById('summariesList');
+            const goToFinalBtn = document.getElementById('goToFinalBtn');
+
+            // 步骤3相关元素
+            const finalGenerationForm = document.getElementById('finalGenerationForm');
+            const finalGenerationStatus = document.getElementById('finalGenerationStatus');
+            const finalStatusMessage = document.getElementById('finalStatusMessage');
+            const generateFinalBtn = document.getElementById('generateFinalBtn');
+            const finalDraftArea = document.getElementById('finalDraftArea');
+            const finalDraftContent = document.getElementById('final-draft-content');
+            const downloadFinalBtn = document.getElementById('downloadFinalBtn');
+            // 添加重新生成按钮引用
+            const regenerateFinalBtn = document.getElementById('regenerateFinalBtn');
+
+            // 选择文件按钮事件
+            selectAllBtn.addEventListener('click', function () {
+                pdfCheckboxes.forEach(checkbox => {
+                    if (!checkbox.disabled) {
+                        checkbox.checked = true;
+                    }
+                });
+            });
+
+            selectWithRefsBtn.addEventListener('click', function () {
+                pdfCheckboxes.forEach(checkbox => {
+                    if (!checkbox.disabled) {
+                        checkbox.checked = true;
+                    } else {
+                        checkbox.checked = false;
+                    }
+                });
+            });
+
+            clearSelectionBtn.addEventListener('click', function () {
+                pdfCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+            });
+
+            // 处理选中的PDF文件
+            processSelectedBtn.addEventListener('click', function () {
+                const selectedPdfs = [];
+                pdfCheckboxes.forEach(checkbox => {
+                    if (checkbox.checked) {
+                        selectedPdfs.push(checkbox.value);
+                    }
+                });
+
+                if (selectedPdfs.length === 0) {
+                    alert('请至少选择一个PDF文件');
+                    return;
+                }
+
+                // 发送请求处理PDF
+                fetch('/api/process-pdfs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ selected_pdfs: selectedPdfs }),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert('错误: ' + data.error);
+                        } else {
+                            // 切换到步骤2
+                            const tab = new bootstrap.Tab(step2Tab);
+                            tab.show();
+
+                            // 启动状态轮询
+                            startStatusPolling();
+                        }
+                    })
+                    .catch(error => {
+                        alert('请求错误: ' + error);
+                    });
+            });
+
+            // 生成最终文稿
+            generateFinalBtn.addEventListener('click', function () {
+                const outputType = document.querySelector('input[name="outputType"]:checked').value;
+            
+                // 发送请求生成最终文稿
+                fetch('/api/generate-final', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ output_type: outputType }),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert('错误: ' + data.error);
+                        } else {
+                            // 显示生成状态
+                            finalGenerationForm.classList.add('d-none');
+                            finalGenerationStatus.classList.remove('d-none');
+                            finalDraftArea.classList.add('d-none');
+                            finalDraftContent.textContent = ''; // 清空之前的内容
+            
+                            // 确保状态轮询正在运行
+                            if (!statusInterval) {
+                                startStatusPolling();
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        alert('请求错误: ' + error);
+                    });
+            });
+
+            // 继续生成最终文稿按钮
+            goToFinalBtn.addEventListener('click', function () {
+                const tab = new bootstrap.Tab(step3Tab);
+                tab.show();
+            });
+
+            // 回到顶部按钮功能
+            const backToTopBtn = document.getElementById('backToTopBtn');
+
+            // 监听滚动事件
+            window.addEventListener('scroll', function () {
+                if (window.pageYOffset > 300) {
+                    backToTopBtn.classList.add('show');
+                } else {
+                    backToTopBtn.classList.remove('show');
+                }
+            });
+
+            // 点击回到顶部
+            backToTopBtn.addEventListener('click', function () {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+
+            // 添加重新生成按钮事件监听
+            regenerateFinalBtn.addEventListener('click', function () {
+                // 隐藏结果区域
+                finalDraftArea.classList.add('d-none');
+                // 显示生成表单
+                finalGenerationForm.classList.remove('d-none');
+                // 重置最终文稿内容
+                finalDraftContent.textContent = '';
+            });
+
+            // 添加全局变量记录开始时间和上次进度值
+            let startTime = null;
+            let lastProgress = 0;
+
+            // 修改startStatusPolling函数
+            function startStatusPolling() {
+                // 清除可能存在的旧定时器
+                if (statusInterval) {
+                    clearInterval(statusInterval);
+                }
+
+                // 重置状态追踪变量
+                startTime = Date.now();
+                lastProgress = 0;
+
+                // 显示进度区域
+                processingStatusArea.classList.add('d-none');
+                progressArea.classList.remove('d-none');
+
+                // 设置轮询
+                statusInterval = setInterval(checkStatus, 1000);
+                checkStatus(); // 立即检查一次
+            }
+
+            // 修改checkStatus函数
+            function checkStatus() {
+                fetch('/api/status')
+                    .then(response => response.json())
+                    .then(data => {
+                        // 记录当前时间和进度
+                        const currentTime = Date.now();
+
+                        // 更新UI显示
+                        currentStep.textContent = data.current_step || '准备中';
+                        statusMessage.textContent = data.message || '';
+
+                        // 调试输出
+                        console.log('Raw progress data:', data);
+
+                        // 进度显示逻辑
+                        const progress = Number(data.progress) || 0;
+                        const total = Number(data.total) || 0;
+
+                        // 强制更新显示值
+                        currentCount.textContent = progress;
+                        totalCount.textContent = total;
+
+                        // 只有在有实际进度且进度变化时才更新时间估计
+                        if (total > 0 && progress > 0 && progress !== lastProgress) {
+                            console.log(`Progress changed: ${lastProgress} -> ${progress}`);
+
+                            // 计算剩余时间
+                            const elapsedMs = currentTime - startTime;
+                            const msPerItem = elapsedMs / progress;
+                            const remainingItems = total - progress;
+                            const remainingMs = Math.max(0, msPerItem * remainingItems);
+
+                            // 更新显示
+                            document.getElementById('remainingTime').textContent =
+                                remainingMs > 0 ? formatTime(remainingMs / 1000) : "即将完成";
+
+                            // 更新最后进度值
+                            lastProgress = progress;
+                        }
+
+                        // 如果是第一次获取进度且有总数，初始化估计时间
+                        if (lastProgress === 0 && progress === 0 && total > 0) {
+                            document.getElementById('remainingTime').textContent = "正在处理第一项...";
+                        }
+
+                        // 检查是否处理完成
+                        if (!data.is_processing) {
+                            // 文献总结完成
+                            if (data.current_step === "总结完成" && data.summaries && data.summaries.length > 0) {
+                                document.getElementById('remainingTime').textContent = "已完成";
+                                displaySummaries(data.summaries);
+                                goToFinalBtn.classList.remove('d-none');
+                            }
+
+                            // 最终文稿生成完成
+                            if (data.current_step === "生成完成" && data.final_draft) {
+                                finalGenerationStatus.classList.add('d-none');
+                                finalDraftArea.classList.remove('d-none');
+                                finalGenerationForm.classList.add('d-none'); // 确保表单隐藏
+                                finalDraftContent.textContent = data.final_draft;
+                            }
+
+                            // 停止轮询
+                            clearInterval(statusInterval);
+                            statusInterval = null;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('状态检查错误:', error);
+                    });
+            }
+
+            // 添加时间格式化函数
+            function formatTime(seconds) {
+                seconds = Math.round(seconds);
+
+                if (seconds < 60) {
+                    return `${seconds} 秒`;
+                }
+
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+
+                if (minutes < 60) {
+                    return `${minutes} 分 ${remainingSeconds} 秒`;
+                }
+
+                const hours = Math.floor(minutes / 60);
+                const remainingMinutes = minutes % 60;
+
+                return `${hours} 小时 ${remainingMinutes} 分 ${remainingSeconds} 秒`;
+            }
+
+            // 显示总结结果
+            function displaySummaries(summaries) {
+                summariesArea.classList.remove('d-none');
+                summariesList.innerHTML = '';
+
+                // 统计各状态数量
+                const successCount = summaries.filter(s => s.status === 'Success').length;
+                const failureCount = summaries.filter(s => s.status === 'Failure').length;
+                const skippedCount = summaries.filter(s => s.status === 'Skipped').length;
+
+                // 添加统计信息
+                const statsElement = document.createElement('div');
+                statsElement.className = 'alert alert-info';
+                statsElement.innerHTML = `
+                    <strong>总结统计:</strong> 总计 ${summaries.length} 篇文献，
+                    成功 ${successCount} 篇，
+                    失败 ${failureCount} 篇，
+                    跳过 ${skippedCount} 篇
+                `;
+                summariesList.appendChild(statsElement);
+
+                // 添加每篇文献的总结
+                summaries.forEach((summary, index) => {
+                    const summaryElement = document.createElement('div');
+                    let statusClass = '';
+
+                    if (summary.status === 'Success') {
+                        statusClass = 'summary-success';
+                    } else if (summary.status === 'Failure') {
+                        statusClass = 'summary-failure';
+                    } else if (summary.status === 'Skipped') {
+                        statusClass = 'summary-skipped';
+                    }
+
+                    summaryElement.className = `summary-item ${statusClass}`;
+
+                    let summaryHTML = `
+                        <h6>${index + 1}. ${summary.source_pdf_path ? summary.source_pdf_path.split('/').pop() : '未知文件'}</h6>
+                        <div><strong>状态:</strong> ${summary.status}</div>
+                    `;
+
+                    if (summary.status === 'Success') {
+                        summaryHTML += `
+                            <div><strong>引用:</strong> ${summary.reference_string || 'N/A'}</div>
+                            <div class="mt-2"><strong>总结预览:</strong></div>
+                            <div class="summary-preview">
+                                ${summary.summary_markdown ? summary.summary_markdown.substring(0, 300) + '...' : '无总结内容'}
+                            </div>
+                        `;
+                    } else if (summary.error_message) {
+                        summaryHTML += `<div><strong>错误:</strong> ${summary.error_message}</div>`;
+                    }
+
+                    summaryElement.innerHTML = summaryHTML;
+                    summariesList.appendChild(summaryElement);
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

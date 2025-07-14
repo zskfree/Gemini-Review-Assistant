@@ -1,0 +1,6 @@
+# requirements.txt  python3.12
+google-genai  # Gemini API Python SDK
+PyYAML             # 用于读取 config.yaml
+requests           # (如果需要直接下载PDF或补充API交互)
+tqdm               # (推荐) 用于显示处理进度条
+flask              # (推荐) 用于创建Web应用

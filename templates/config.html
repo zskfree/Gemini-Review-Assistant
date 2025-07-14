@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini - 配置管理</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .config-section {
+            margin-bottom: 30px;
+        }
+
+        .test-button {
+            margin-left: 10px;
+        }
+
+        .alert-temp {
+            animation: fadeOut 3s forwards;
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+            }
+
+            70% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .nav-pills .nav-link.active {
+            background-color: #0d6efd;
+        }
+
+        .card-header {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+
+        /* 提示词编辑器优化样式 */
+        .prompt-editor {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            background-color: #ffffff;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .prompt-editor-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-bottom: 1px solid #dee2e6;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .prompt-editor-title {
+            font-weight: 600;
+            color: #495057;
+            margin: 0;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .prompt-editor-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .prompt-textarea-wrapper {
+            position: relative;
+        }
+
+        .prompt-textarea-enhanced {
+            min-height: 250px;
+            max-height: 400px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            resize: vertical;
+            border: none;
+            border-radius: 0;
+            padding: 16px;
+            width: 100%;
+            box-shadow: none;
+            background-color: #fafafa;
+            transition: background-color 0.2s ease;
+        }
+
+        .prompt-textarea-enhanced:focus {
+            box-shadow: none;
+            border: none;
+            outline: none;
+            background-color: #ffffff;
+        }
+
+        .char-counter {
+            position: absolute;
+            bottom: 8px;
+            right: 12px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-family: monospace;
+            font-weight: 500;
+        }
+
+        .btn-expand,
+        .btn-copy {
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .btn-expand {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: white;
+        }
+
+        .btn-expand:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
+
+        .btn-copy {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+        }
+
+        .btn-copy:hover {
+            background-color: #5c636a;
+            border-color: #565e64;
+        }
+
+        /* 全屏编辑模式优化 */
+        .fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            display: none;
+            backdrop-filter: blur(4px);
+        }
+
+        .fullscreen-editor {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 95%;
+            height: 90%;
+            max-width: 1200px;
+            background-color: white;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .fullscreen-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #dee2e6;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .fullscreen-textarea {
+            flex: 1;
+            border: none;
+            padding: 24px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            background-color: #fafafa;
+        }
+
+        .fullscreen-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #dee2e6;
+            background-color: #f8f9fa;
+            border-radius: 0 0 12px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* 手风琴优化 */
+        .accordion-prompt {
+            border: none !important;
+            margin-bottom: 16px;
+        }
+
+        .accordion-button {
+            font-weight: 600;
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px !important;
+            padding: 16px 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: #e3f2fd;
+            border-color: #90caf9;
+            color: #1565c0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .accordion-button:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        .accordion-collapse {
+            border: none !important;
+        }
+
+        .accordion-body {
+            padding: 0 !important;
+            border: none !important;
+        }
+
+        /* 研究主题优化 */
+        .research-theme-section {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border: 1px solid #ffcc02;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .research-theme-section .form-label {
+            color: #e65100;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .research-theme-section textarea {
+            border: 2px solid #ffb74d;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+
+        .research-theme-section textarea:focus {
+            border-color: #ff9800;
+            box-shadow: 0 0 0 0.2rem rgba(255, 152, 0, 0.25);
+        }
+
+        /* 图标样式 */
+        .icon-summary::before {
+            content: '\f15c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: #28a745;
+        }
+
+        .icon-review::before {
+            content: '\f02d';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: #007bff;
+        }
+
+        .icon-qualitative::before {
+            content: '\f0ae';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: #6f42c1;
+        }
+
+        /* 响应式优化 */
+        @media (max-width: 768px) {
+            .fullscreen-editor {
+                width: 98%;
+                height: 95%;
+            }
+
+            .prompt-editor-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+
+            .prompt-editor-controls {
+                justify-content: center;
+            }
+        }
+
+        /* 美化滚动条 */
+        .prompt-textarea-enhanced::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .prompt-textarea-enhanced::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .prompt-textarea-enhanced::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        .prompt-textarea-enhanced::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- 侧边导航 -->
+            <div class="col-md-3">
+                <div class="d-flex flex-column flex-shrink-0 p-3 bg-light" style="min-height: 100vh;">
+                    <h4 class="mb-4"><i class="fas fa-cog me-2"></i>配置管理</h4>
+                    <ul class="nav nav-pills flex-column mb-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="pill" href="#llm-config">
+                                <i class="fas fa-brain me-2"></i>LLM配置
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="pill" href="#paths-config">
+                                <i class="fas fa-folder me-2"></i>路径配置
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="pill" href="#prompts-config">
+                                <i class="fas fa-edit me-2"></i>提示词配置
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="pill" href="#cache-config">
+                                <i class="fas fa-database me-2"></i>缓存配置
+                            </a>
+                        </li>
+                    </ul>
+                    <hr>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" id="saveAllBtn">
+                            <i class="fas fa-save me-2"></i>保存所有配置
+                        </button>
+                        <a href="/" class="btn btn-outline-secondary">
+                            <i class="fas fa-home me-2"></i>返回主页
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 主要内容区域 -->
+            <div class="col-md-9">
+                <div class="p-4">
+                    <div id="alertArea"></div>
+
+                    <div class="tab-content">
+                        <!-- LLM配置 -->
+                        <div class="tab-pane fade show active" id="llm-config">
+                            <div class="card config-section">
+                                <div class="card-header">
+                                    <h5 class="mb-0"><i class="fas fa-brain me-2"></i>LLM配置</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label for="model_name" class="form-label">模型名称（文献总结）</label>
+                                            <input type="text" class="form-control" id="model_name"
+                                                placeholder="gemini-2.5-flash">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="final_draft_model_name" class="form-label">模型名称（最终生成）</label>
+                                            <input type="text" class="form-control" id="final_draft_model_name"
+                                                placeholder="gemini-2.5-pro">
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-md-8">
+                                            <label for="api_key" class="form-label">API密钥</label>
+                                            <input type="password" class="form-control" id="api_key"
+                                                placeholder="输入您的Gemini API密钥">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">&nbsp;</label>
+                                            <div>
+                                                <button class="btn btn-outline-primary test-button" id="testApiBtn">
+                                                    <i class="fas fa-plug me-1"></i>测试API连接
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-md-6">
+                                            <label for="temperature" class="form-label">温度参数 (0.0-2.0)</label>
+                                            <input type="number" class="form-control" id="temperature" min="0" max="2"
+                                                step="0.1" placeholder="1.5">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="max_retries" class="form-label">最大重试次数</label>
+                                            <input type="number" class="form-control" id="max_retries" min="1" max="10"
+                                                placeholder="5">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 路径配置 -->
+                        <div class="tab-pane fade" id="paths-config">
+                            <div class="card config-section">
+                                <div class="card-header">
+                                    <h5 class="mb-0"><i class="fas fa-folder me-2"></i>路径配置</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="pdf_dir" class="form-label">PDF文件目录</label>
+                                        <input type="text" class="form-control" id="pdf_dir" placeholder="PDF_Files/">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="txt_dir" class="form-label">文本文件目录</label>
+                                        <input type="text" class="form-control" id="txt_dir" placeholder="TXT_Files/">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="cache_file" class="form-label">缓存文件路径</label>
+                                        <input type="text" class="form-control" id="cache_file"
+                                            placeholder="cache/summaries_cache.json">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="summary_output_file" class="form-label">总结输出文件路径</label>
+                                        <input type="text" class="form-control" id="summary_output_file"
+                                            placeholder="Results_Files/文献总结.json">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="final_output_file" class="form-label">最终输出文件路径</label>
+                                        <input type="text" class="form-control" id="final_output_file"
+                                            placeholder="Results_Files/最终结果.txt">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 提示词配置 -->
+                        <div class="tab-pane fade" id="prompts-config">
+                            <div class="card config-section">
+                                <div class="card-header">
+                                    <h5 class="mb-0"><i class="fas fa-edit me-2"></i>提示词配置</h5>
+                                </div>
+                                <div class="card-body">
+                                    <!-- 研究主题 -->
+                                    <div class="research-theme-section">
+                                        <label for="research_theme" class="form-label">
+                                            <i class="fas fa-lightbulb"></i>研究主题
+                                        </label>
+                                        <textarea class="form-control" id="research_theme" rows="3"
+                                            placeholder="输入您的研究主题..."></textarea>
+                                        <div class="form-text">简要描述您的研究主题和方向</div>
+                                    </div>
+
+                                    <!-- 使用手风琴布局的提示词编辑器 -->
+                                    <div class="accordion" id="promptsAccordion">
+                                        <!-- 文献总结提示词 -->
+                                        <div class="accordion-item accordion-prompt">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button"
+                                                    data-bs-toggle="collapse" data-bs-target="#summaryPromptCollapse">
+                                                    <i class="fas fa-file-alt me-2 icon-summary"></i>
+                                                    文献总结提示词
+                                                    <span class="badge bg-success ms-auto me-3"
+                                                        id="summaryPromptBadge">0 字符</span>
+                                                </button>
+                                            </h2>
+                                            <div id="summaryPromptCollapse" class="accordion-collapse collapse"
+                                                data-bs-parent="#promptsAccordion">
+                                                <div class="accordion-body p-0">
+                                                    <div class="prompt-editor">
+                                                        <div class="prompt-editor-header">
+                                                            <div class="prompt-editor-title">
+                                                                <i class="fas fa-edit"></i>
+                                                                编辑文献总结提示词
+                                                            </div>
+                                                            <div class="prompt-editor-controls">
+                                                                <button class="btn btn-copy"
+                                                                    onclick="copyToClipboard('summary_prompt')">
+                                                                    <i class="fas fa-copy me-1"></i>复制
+                                                                </button>
+                                                                <button class="btn btn-expand"
+                                                                    onclick="openFullscreenEditor('summary_prompt', '文献总结提示词')">
+                                                                    <i class="fas fa-expand me-1"></i>全屏编辑
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <div class="prompt-textarea-wrapper">
+                                                            <textarea class="prompt-textarea-enhanced"
+                                                                id="summary_prompt" placeholder="输入文献总结提示词..."
+                                                                oninput="updateCharCounter('summary_prompt', 'summaryPromptBadge')"></textarea>
+                                                            <div class="char-counter" id="summary_prompt_counter">0
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- 文献综述生成提示词 -->
+                                        <div class="accordion-item accordion-prompt">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button"
+                                                    data-bs-toggle="collapse" data-bs-target="#reviewPromptCollapse">
+                                                    <i class="fas fa-book me-2 icon-review"></i>
+                                                    文献综述生成提示词
+                                                    <span class="badge bg-primary ms-auto me-3" id="reviewPromptBadge">0
+                                                        字符</span>
+                                                </button>
+                                            </h2>
+                                            <div id="reviewPromptCollapse" class="accordion-collapse collapse"
+                                                data-bs-parent="#promptsAccordion">
+                                                <div class="accordion-body p-0">
+                                                    <div class="prompt-editor">
+                                                        <div class="prompt-editor-header">
+                                                            <div class="prompt-editor-title">
+                                                                <i class="fas fa-edit"></i>
+                                                                编辑文献综述生成提示词
+                                                            </div>
+                                                            <div class="prompt-editor-controls">
+                                                                <button class="btn btn-copy"
+                                                                    onclick="copyToClipboard('review_final_prompt')">
+                                                                    <i class="fas fa-copy me-1"></i>复制
+                                                                </button>
+                                                                <button class="btn btn-expand"
+                                                                    onclick="openFullscreenEditor('review_final_prompt', '文献综述生成提示词')">
+                                                                    <i class="fas fa-expand me-1"></i>全屏编辑
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <div class="prompt-textarea-wrapper">
+                                                            <textarea class="prompt-textarea-enhanced"
+                                                                id="review_final_prompt" placeholder="输入文献综述生成提示词..."
+                                                                oninput="updateCharCounter('review_final_prompt', 'reviewPromptBadge')"></textarea>
+                                                            <div class="char-counter" id="review_final_prompt_counter">0
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- 定性研究论文生成提示词 -->
+                                        <div class="accordion-item accordion-prompt">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button"
+                                                    data-bs-toggle="collapse"
+                                                    data-bs-target="#qualitativePromptCollapse">
+                                                    <i class="fas fa-microscope me-2 icon-qualitative"></i>
+                                                    定性研究论文生成提示词
+                                                    <span class="badge bg-purple ms-auto me-3"
+                                                        id="qualitativePromptBadge" style="background-color: #6f42c1;">0
+                                                        字符</span>
+                                                </button>
+                                            </h2>
+                                            <div id="qualitativePromptCollapse" class="accordion-collapse collapse"
+                                                data-bs-parent="#promptsAccordion">
+                                                <div class="accordion-body p-0">
+                                                    <div class="prompt-editor">
+                                                        <div class="prompt-editor-header">
+                                                            <div class="prompt-editor-title">
+                                                                <i class="fas fa-edit"></i>
+                                                                编辑定性研究论文生成提示词
+                                                            </div>
+                                                            <div class="prompt-editor-controls">
+                                                                <button class="btn btn-copy"
+                                                                    onclick="copyToClipboard('qualitative_final_prompt')">
+                                                                    <i class="fas fa-copy me-1"></i>复制
+                                                                </button>
+                                                                <button class="btn btn-expand"
+                                                                    onclick="openFullscreenEditor('qualitative_final_prompt', '定性研究论文生成提示词')">
+                                                                    <i class="fas fa-expand me-1"></i>全屏编辑
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <div class="prompt-textarea-wrapper">
+                                                            <textarea class="prompt-textarea-enhanced"
+                                                                id="qualitative_final_prompt"
+                                                                placeholder="输入定性研究论文生成提示词..."
+                                                                oninput="updateCharCounter('qualitative_final_prompt', 'qualitativePromptBadge')"></textarea>
+                                                            <div class="char-counter"
+                                                                id="qualitative_final_prompt_counter">0</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 缓存配置 -->
+                        <div class="tab-pane fade" id="cache-config">
+                            <div class="card config-section">
+                                <div class="card-header">
+                                    <h5 class="mb-0"><i class="fas fa-database me-2"></i>缓存配置</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="cache_enabled">
+                                        <label class="form-check-label" for="cache_enabled">
+                                            启用缓存功能
+                                        </label>
+                                        <div class="form-text">
+                                            启用后，已处理的文献总结将被缓存，避免重复处理
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 全屏编辑器模态框 -->
+    <div class="fullscreen-overlay" id="fullscreenOverlay">
+        <div class="fullscreen-editor">
+            <div class="fullscreen-header">
+                <h5 class="mb-0" id="fullscreenTitle">
+                    <i class="fas fa-edit me-2"></i>编辑提示词
+                </h5>
+                <div>
+                    <button class="btn btn-secondary me-2" onclick="closeFullscreenEditor()">
+                        <i class="fas fa-times me-1"></i>取消
+                    </button>
+                    <button class="btn btn-primary" onclick="saveFullscreenEditor()">
+                        <i class="fas fa-save me-1"></i>保存并关闭
+                    </button>
+                </div>
+            </div>
+            <textarea class="fullscreen-textarea" id="fullscreenTextarea" placeholder="在此编辑您的提示词..."></textarea>
+            <div class="fullscreen-footer">
+                <div class="text-muted">
+                    <small><i class="fas fa-keyboard me-1"></i>提示：您可以使用 Ctrl+S 快速保存，Esc 键关闭编辑器</small>
+                </div>
+                <div class="char-counter" id="fullscreenCharCounter">0 字符</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let currentConfig = {};
+            let currentPrompts = {};
+            let currentEditingField = '';
+
+            // 加载当前配置
+            loadConfig();
+
+            // 保存所有配置按钮
+            document.getElementById('saveAllBtn').addEventListener('click', saveAllConfig);
+
+            // 测试API按钮
+            document.getElementById('testApiBtn').addEventListener('click', testApi);
+
+            // 全屏编辑器快捷键
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && document.getElementById('fullscreenOverlay').style.display === 'block') {
+                    closeFullscreenEditor();
+                }
+                if (e.ctrlKey && e.key === 's' && document.getElementById('fullscreenOverlay').style.display === 'block') {
+                    e.preventDefault();
+                    saveFullscreenEditor();
+                }
+            });
+
+            // 新增函数：更新字符计数器
+            window.updateCharCounter = function (textareaId, badgeId) {
+                const textarea = document.getElementById(textareaId);
+                const counter = document.getElementById(textareaId + '_counter');
+                const badge = document.getElementById(badgeId);
+                const length = textarea.value.length;
+
+                if (counter) counter.textContent = length;
+                if (badge) badge.textContent = length + ' 字符';
+            };
+
+            // 新增函数：复制到剪贴板
+            window.copyToClipboard = function (textareaId) {
+                const textarea = document.getElementById(textareaId);
+                navigator.clipboard.writeText(textarea.value).then(() => {
+                    showAlert('success', '提示词已复制到剪贴板');
+                }).catch(() => {
+                    showAlert('danger', '复制失败，请手动复制');
+                });
+            };
+
+            // 新增函数：打开全屏编辑器
+            window.openFullscreenEditor = function (textareaId, title) {
+                const textarea = document.getElementById(textareaId);
+                const overlay = document.getElementById('fullscreenOverlay');
+                const fullscreenTextarea = document.getElementById('fullscreenTextarea');
+                const fullscreenTitle = document.getElementById('fullscreenTitle');
+
+                currentEditingField = textareaId;
+                fullscreenTitle.innerHTML = `<i class="fas fa-edit me-2"></i>${title}`;
+                fullscreenTextarea.value = textarea.value;
+                overlay.style.display = 'block';
+                fullscreenTextarea.focus();
+
+                updateFullscreenCharCounter();
+            };
+
+            // 新增函数：关闭全屏编辑器
+            window.closeFullscreenEditor = function () {
+                document.getElementById('fullscreenOverlay').style.display = 'none';
+                currentEditingField = '';
+            };
+
+            // 新增函数：保存全屏编辑器内容
+            window.saveFullscreenEditor = function () {
+                const fullscreenTextarea = document.getElementById('fullscreenTextarea');
+                const originalTextarea = document.getElementById(currentEditingField);
+
+                originalTextarea.value = fullscreenTextarea.value;
+
+                // 更新字符计数器
+                const badgeMap = {
+                    'summary_prompt': 'summaryPromptBadge',
+                    'review_final_prompt': 'reviewPromptBadge',
+                    'qualitative_final_prompt': 'qualitativePromptBadge'
+                };
+
+                if (badgeMap[currentEditingField]) {
+                    updateCharCounter(currentEditingField, badgeMap[currentEditingField]);
+                }
+
+                closeFullscreenEditor();
+                showAlert('success', '提示词已更新');
+            };
+
+            // 新增函数：更新全屏编辑器字符计数器
+            function updateFullscreenCharCounter() {
+                const textarea = document.getElementById('fullscreenTextarea');
+                const counter = document.getElementById('fullscreenCharCounter');
+
+                function updateCounter() {
+                    counter.textContent = textarea.value.length + ' 字符';
+                }
+
+                textarea.addEventListener('input', updateCounter);
+                updateCounter();
+            }
+
+            function loadConfig() {
+                fetch('/api/config')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            showAlert('danger', '配置加载失败: ' + data.error);
+                            return;
+                        }
+
+                        currentConfig = data.config;
+                        currentPrompts = data.prompts;
+
+                        // 填充LLM配置
+                        document.getElementById('model_name').value = currentConfig.llm?.model_name || '';
+                        document.getElementById('final_draft_model_name').value = currentConfig.llm?.final_draft_model_name || '';
+                        document.getElementById('api_key').value = currentConfig.llm?.api_key || '';
+                        document.getElementById('temperature').value = currentConfig.llm?.temperature || '';
+                        document.getElementById('max_retries').value = currentConfig.llm?.max_retries || '';
+
+                        // 填充路径配置
+                        document.getElementById('pdf_dir').value = currentConfig.paths?.pdf_dir || '';
+                        document.getElementById('txt_dir').value = currentConfig.paths?.txt_dir || '';
+                        document.getElementById('cache_file').value = currentConfig.paths?.cache_file || '';
+                        document.getElementById('summary_output_file').value = currentConfig.paths?.summary_output_file || '';
+                        document.getElementById('final_output_file').value = currentConfig.paths?.final_output_file || '';
+
+                        // 填充提示词配置并初始化字符计数器
+                        document.getElementById('research_theme').value = currentPrompts.research_theme || '';
+                        document.getElementById('summary_prompt').value = currentPrompts.summary_prompt || '';
+                        document.getElementById('review_final_prompt').value = currentPrompts.review_final_prompt || '';
+                        document.getElementById('qualitative_final_prompt').value = currentPrompts.qualitative_final_prompt || '';
+
+                        // 初始化字符计数器
+                        updateCharCounter('summary_prompt', 'summaryPromptBadge');
+                        updateCharCounter('review_final_prompt', 'reviewPromptBadge');
+                        updateCharCounter('qualitative_final_prompt', 'qualitativePromptBadge');
+
+                        // 填充缓存配置
+                        document.getElementById('cache_enabled').checked = currentConfig.cache?.enabled || false;
+                    })
+                    .catch(error => {
+                        showAlert('danger', '配置加载失败: ' + error);
+                    });
+            }
+
+            function saveAllConfig() {
+                // 收集所有配置数据
+                const config = {
+                    llm: {
+                        model_name: document.getElementById('model_name').value,
+                        final_draft_model_name: document.getElementById('final_draft_model_name').value,
+                        api_key: document.getElementById('api_key').value,
+                        temperature: parseFloat(document.getElementById('temperature').value) || 1.5,
+                        max_retries: parseInt(document.getElementById('max_retries').value) || 5
+                    },
+                    paths: {
+                        pdf_dir: document.getElementById('pdf_dir').value,
+                        txt_dir: document.getElementById('txt_dir').value,
+                        cache_file: document.getElementById('cache_file').value,
+                        summary_output_file: document.getElementById('summary_output_file').value,
+                        final_output_file: document.getElementById('final_output_file').value
+                    },
+                    prompts: currentConfig.prompts || {},
+                    cache: {
+                        enabled: document.getElementById('cache_enabled').checked
+                    }
+                };
+
+                const prompts = {
+                    research_theme: document.getElementById('research_theme').value,
+                    summary_prompt: document.getElementById('summary_prompt').value,
+                    review_final_prompt: document.getElementById('review_final_prompt').value,
+                    qualitative_final_prompt: document.getElementById('qualitative_final_prompt').value
+                };
+
+                // 发送保存请求
+                fetch('/api/config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        config: config,
+                        prompts: prompts
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            showAlert('danger', '配置保存失败: ' + data.error);
+                        } else {
+                            showAlert('success', '配置保存成功!');
+                            // 更新当前配置
+                            currentConfig = config;
+                            currentPrompts = prompts;
+                        }
+                    })
+                    .catch(error => {
+                        showAlert('danger', '配置保存失败: ' + error);
+                    });
+            }
+
+            function testApi() {
+                const btn = document.getElementById('testApiBtn');
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>测试中...';
+
+                fetch('/api/config/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ type: 'api' })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showAlert('success', data.message);
+                        } else {
+                            showAlert('danger', data.message);
+                        }
+                    })
+                    .catch(error => {
+                        showAlert('danger', 'API测试失败: ' + error);
+                    })
+                    .finally(() => {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                    });
+            }
+
+            function showAlert(type, message) {
+                const alertArea = document.getElementById('alertArea');
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${type} alert-dismissible fade show alert-temp`;
+                alertDiv.innerHTML = `
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                alertArea.appendChild(alertDiv);
+
+                // 3秒后自动移除
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.parentNode.removeChild(alertDiv);
+                    }
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+
+</html>
