@@ -27,6 +27,18 @@
             border-radius: 12px;
             font-weight: 500;
             padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .header-actions .btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+            color: white;
+            transform: translateY(-2px);
         }
 
         .step-tabs {
@@ -271,31 +283,40 @@
             }
         }
         
-        /* 响应式调整 */
+        /* 添加响应式样式与reference_check.html保持一致 */
         @media (max-width: 768px) {
-            .back-to-top {
-                width: 50px;
-                height: 50px;
-                bottom: 20px;
-                right: 20px;
-                font-size: 1.2rem;
+            .main-header h1 {
+                font-size: 2rem;
+                margin-bottom: 1rem;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .header-actions .btn {
+                flex: 1;
+                text-align: center;
+                margin: 0.25rem;
             }
         }
-        
-        @media (max-width: 480px) {
-            .back-to-top {
-                width: 45px;
-                height: 45px;
-                bottom: 15px;
-                right: 15px;
-                font-size: 1.1rem;
+
+        @media (max-width: 576px) {
+            .main-header {
+                padding: 1.5rem 0;
+            }
+
+            .main-header h1 {
+                font-size: 1.8rem;
             }
         }
     </style>
 </head>
 
 <body>
-    <!-- Main Header -->
+    <!-- Main Header - 确保结构一致 -->
     <div class="main-header">
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">

@@ -9,7 +9,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/common.css">
     <style>
-        /* 修复头部样式 */
+        /* 统一头部样式 - 与index.html保持一致 */
         .header-section {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -20,7 +20,7 @@
         }
 
         .header-title {
-            font-size: 2.2rem;
+            font-size: 2.5rem;
             font-weight: 700;
             margin: 0;
             color: white;
@@ -28,7 +28,7 @@
 
         .header-actions {
             display: flex;
-            gap: 0.5rem;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
@@ -36,9 +36,9 @@
             background: rgba(255, 255, 255, 0.15);
             border: 2px solid rgba(255, 255, 255, 0.3);
             color: white;
-            font-weight: 600;
-            padding: 8px 16px;
-            border-radius: 8px;
+            font-weight: 500;
+            padding: 12px 20px;
+            border-radius: 12px;
             transition: all 0.3s ease;
             text-decoration: none;
         }
@@ -48,6 +48,35 @@
             border-color: rgba(255, 255, 255, 0.5);
             color: white;
             transform: translateY(-2px);
+        }
+
+        /* 响应式头部调整 - 与index.html保持一致 */
+        @media (max-width: 768px) {
+            .header-title {
+                font-size: 2rem;
+                margin-bottom: 1rem;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .btn-header {
+                flex: 1;
+                text-align: center;
+                margin: 0.25rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .header-section {
+                padding: 1.5rem 0;
+            }
+
+            .header-title {
+                font-size: 1.8rem;
+            }
         }
 
         /* 统计卡片样式优化 */
@@ -454,24 +483,20 @@
 </head>
 
 <body>
-    <!-- Header Section -->
+    <!-- Header Section - 更新结构与index.html保持一致 -->
     <div class="header-section">
         <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-8">
-                    <h1 class="header-title">
-                        <i class="fas fa-check-double me-3"></i>参考文献核对
-                    </h1>
-                </div>
-                <div class="col-lg-4">
-                    <div class="header-actions">
-                        <a href="/" class="btn btn-header">
-                            <i class="fas fa-home me-2"></i>返回首页
-                        </a>
-                        <a href="/config" class="btn btn-header">
-                            <i class="fas fa-cog me-2"></i>配置
-                        </a>
-                    </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="header-title">
+                    <i class="fas fa-check-double me-3"></i>参考文献核对
+                </h1>
+                <div class="header-actions">
+                    <a href="/" class="btn btn-header">
+                        <i class="fas fa-home me-2"></i>返回首页
+                    </a>
+                    <a href="/config" class="btn btn-header">
+                        <i class="fas fa-cog me-2"></i>配置管理
+                    </a>
                 </div>
             </div>
         </div>
