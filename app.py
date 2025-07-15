@@ -227,6 +227,63 @@ def rename_file():
     except Exception as e:
         return jsonify({"error": f"重命名失败: {str(e)}"}), 500
 
+@app.route('/api/update-summary', methods=['POST'])
+def update_summary():
+    """更新文献总结内容"""
+    try:
+        data = request.json
+        index = data.get('index')
+        summary_content = data.get('summary_content')
+        file_path = data.get('file_path')
+        
+        if index is None or not summary_content:
+            return jsonify({"success": False, "error": "缺少必要参数"}), 400
+        
+        # 加载配置
+        config = config_loader.load_config("config.yaml")
+        summary_output_path = config['paths']['summary_output_file']
+        
+        # 更新内存中的状态
+        global processing_status
+        if (index < len(processing_status["summaries"]) and 
+            processing_status["summaries"][index].get('status') == 'Success'):
+            processing_status["summaries"][index]['summary_markdown'] = summary_content
+        
+        # 更新文件中的总结数据
+        if os.path.exists(summary_output_path):
+            try:
+                # 读取现有数据
+                with open(summary_output_path, 'r', encoding='utf-8') as f:
+                    all_summaries = json.load(f)
+                
+                # 更新指定索引的总结内容
+                if (index < len(all_summaries) and 
+                    all_summaries[index].get('status') == 'Success'):
+                    all_summaries[index]['summary_markdown'] = summary_content
+                    
+                    # 添加修改时间戳
+                    import datetime
+                    all_summaries[index]['last_modified'] = datetime.datetime.now().isoformat()
+                    
+                    # 保存更新后的数据
+                    with open(summary_output_path, 'w', encoding='utf-8') as f:
+                        json.dump(all_summaries, f, ensure_ascii=False, indent=4)
+                    
+                    return jsonify({
+                        "success": True, 
+                        "message": "总结内容已更新",
+                        "updated_content": summary_content
+                    })
+                else:
+                    return jsonify({"success": False, "error": "无效的索引或总结状态"}), 400
+                    
+            except json.JSONDecodeError as e:
+                return jsonify({"success": False, "error": f"总结文件格式错误: {str(e)}"}), 500
+        else:
+            return jsonify({"success": False, "error": "总结文件不存在"}), 404
+            
+    except Exception as e:
+        return jsonify({"success": False, "error": f"更新失败: {str(e)}"}), 500
 
 @app.route('/')
 def index():

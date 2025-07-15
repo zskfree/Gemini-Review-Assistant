@@ -143,6 +143,96 @@
             border-radius: 3px;
         }
 
+        /* 添加查看详情按钮样式 */
+        .view-details-btn {
+            font-size: 0.875rem;
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+
+        /* 模态框内容样式 */
+        .summary-modal-content {
+            max-height: 60vh;
+            overflow-y: auto;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .summary-modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .summary-modal-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .summary-modal-content::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        .summary-meta-info {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-meta-info .meta-item {
+            margin-bottom: 8px;
+        }
+
+        .summary-meta-info .meta-item:last-child {
+            margin-bottom: 0;
+        }
+
+        /* 添加编辑功能相关样式 */
+        .edit-summary-textarea {
+            width: 100%;
+            min-height: 400px;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.6;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            padding: 15px;
+            resize: vertical;
+        }
+
+        .edit-summary-textarea:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            outline: 0;
+        }
+
+        .edit-controls {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .save-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            min-width: 200px;
+        }
+
+        .btn-edit-mode {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            border: 2px solid #fdcb6e;
+            color: #2d3436;
+        }
+
+        .btn-edit-mode:hover {
+            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+            border-color: #e17055;
+            color: #2d3436;
+        }
+
         #final-draft-content {
             white-space: pre-wrap;
             max-height: 500px;
@@ -551,17 +641,103 @@
         </div>
     </div>
 
+    <!-- 添加文献总结详情模态框 -->
+    <div class="modal fade" id="summaryDetailModal" tabindex="-1" aria-labelledby="summaryDetailModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="summaryDetailModalLabel">
+                        <i class="fas fa-file-text me-2"></i>文献总结详情
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="summary-meta-info">
+                        <div class="meta-item">
+                            <strong><i class="fas fa-file-pdf me-2"></i>文件名:</strong>
+                            <span id="modalFileName"></span>
+                        </div>
+                        <div class="meta-item">
+                            <strong><i class="fas fa-info-circle me-2"></i>状态:</strong>
+                            <span id="modalStatus"></span>
+                        </div>
+                        <div class="meta-item" id="modalReferenceItem">
+                            <strong><i class="fas fa-quote-right me-2"></i>引用格式:</strong>
+                            <span id="modalReference"></span>
+                        </div>
+                        <div class="meta-item" id="modalErrorItem" style="display: none;">
+                            <strong><i class="fas fa-exclamation-triangle me-2"></i>错误信息:</strong>
+                            <span id="modalError" class="text-danger"></span>
+                        </div>
+                    </div>
+    
+                    <div id="modalSummaryContainer">
+                        <h6><i class="fas fa-book me-2"></i>总结内容:</h6>
+                        <div class="summary-modal-content" id="modalSummaryContent"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>关闭
+                    </button>
+                    <button type="button" class="btn btn-warning d-none" id="editSummaryBtn">
+                        <i class="fas fa-edit me-2"></i>编辑总结
+                    </button>
+                    <button type="button" class="btn btn-success d-none" id="saveSummaryBtn">
+                        <i class="fas fa-save me-2"></i>保存修改
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary d-none" id="cancelEditBtn">
+                        <i class="fas fa-times me-2"></i>取消编辑
+                    </button>
+                    <button type="button" class="btn btn-primary" id="copySummaryBtn">
+                        <i class="fas fa-copy me-2"></i>复制总结内容
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 保存指示器 -->
+    <div id="saveIndicator" class="save-indicator d-none">
+        <div class="alert alert-success mb-0">
+            <i class="fas fa-check me-2"></i>总结已保存
+        </div>
+    </div>
+    
     <!-- 统一的回到顶部按钮 -->
     <button id="backToTopBtn" class="back-to-top" title="回到顶部">
         <i class="fas fa-chevron-up"></i>
     </button>
-
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // 全局变量
             let currentlyProcessing = false;
             let statusInterval = null;
+            let summariesData = []; // 存储完整的总结数据
+            let isEditMode = false; // 编辑模式标志
+            let currentEditIndex = -1; // 当前编辑的总结索引
+            let originalSummaryContent = ''; // 原始总结内容备份
+
+            // 添加模态框相关元素引用
+            const summaryDetailModal = new bootstrap.Modal(document.getElementById('summaryDetailModal'));
+            const modalFileName = document.getElementById('modalFileName');
+            const modalStatus = document.getElementById('modalStatus');
+            const modalReference = document.getElementById('modalReference');
+            const modalReferenceItem = document.getElementById('modalReferenceItem');
+            const modalError = document.getElementById('modalError');
+            const modalErrorItem = document.getElementById('modalErrorItem');
+            const modalSummaryContent = document.getElementById('modalSummaryContent');
+            const modalSummaryContainer = document.getElementById('modalSummaryContainer');
+            const copySummaryBtn = document.getElementById('copySummaryBtn');
+            
+            // 添加编辑相关元素引用
+            const editSummaryBtn = document.getElementById('editSummaryBtn');
+            const saveSummaryBtn = document.getElementById('saveSummaryBtn');
+            const cancelEditBtn = document.getElementById('cancelEditBtn');
+            const saveIndicator = document.getElementById('saveIndicator');
 
             // UI元素引用
             const stepTabs = document.getElementById('stepTabs');
@@ -884,8 +1060,11 @@
                 return `${hours} 小时 ${remainingMinutes} 分 ${remainingSeconds} 秒`;
             }
 
-            // 显示总结结果
+            // 显示总结结果 - 修改此函数
             function displaySummaries(summaries) {
+                // 保存完整的总结数据
+                summariesData = summaries;
+
                 summariesArea.classList.remove('d-none');
                 summariesList.innerHTML = '';
 
@@ -921,27 +1100,331 @@
                     summaryElement.className = `summary-item ${statusClass}`;
 
                     let summaryHTML = `
-                        <h6>${index + 1}. ${summary.source_pdf_path ? summary.source_pdf_path.split('/').pop() : '未知文件'}</h6>
-                        <div><strong>状态:</strong> ${summary.status}</div>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6>${index + 1}. ${summary.source_pdf_path ? summary.source_pdf_path.split('/').pop() : '未知文件'}</h6>
+                                <div><strong>状态:</strong> ${summary.status}</div>
                     `;
 
                     if (summary.status === 'Success') {
                         summaryHTML += `
-                            <div><strong>引用:</strong> ${summary.reference_string || 'N/A'}</div>
-                            <div class="mt-2"><strong>总结预览:</strong></div>
-                            <div class="summary-preview">
-                                ${summary.summary_markdown ? summary.summary_markdown.substring(0, 300) + '...' : '无总结内容'}
-                            </div>
+                                <div><strong>引用:</strong> ${summary.reference_string || 'N/A'}</div>
+                                <div class="mt-2"><strong>总结预览:</strong></div>
+                                <div class="summary-preview">
+                                    ${summary.summary_markdown ? summary.summary_markdown.substring(0, 300) + '...' : '无总结内容'}
+                                </div>
                         `;
                     } else if (summary.error_message) {
                         summaryHTML += `<div><strong>错误:</strong> ${summary.error_message}</div>`;
                     }
+
+                    summaryHTML += `
+                            </div>
+                            <div class="ms-3">
+                                <button class="btn btn-outline-primary view-details-btn" onclick="showSummaryDetail(${index})">
+                                    <i class="fas fa-eye me-1"></i>查看详情
+                                </button>
+                            </div>
+                        </div>
+                    `;
 
                     summaryElement.innerHTML = summaryHTML;
                     summariesList.appendChild(summaryElement);
                 });
             }
 
+            // 添加显示总结详情的函数
+            window.showSummaryDetail = function (index) {
+                const summary = summariesData[index];
+                if (!summary) return;
+
+                // 重置编辑模式
+                exitEditMode();
+                currentEditIndex = index;
+
+                // 设置文件名
+                modalFileName.textContent = summary.source_pdf_path ?
+                    summary.source_pdf_path.split('/').pop() : '未知文件';
+
+                // 设置状态
+                modalStatus.textContent = summary.status;
+                modalStatus.className = summary.status === 'Success' ? 'badge bg-success' :
+                    summary.status === 'Failure' ? 'badge bg-danger' : 'badge bg-warning';
+
+                // 处理引用信息
+                if (summary.status === 'Success' && summary.reference_string) {
+                    modalReference.textContent = summary.reference_string;
+                    modalReferenceItem.style.display = 'block';
+                } else {
+                    modalReferenceItem.style.display = 'none';
+                }
+
+                // 处理错误信息
+                if (summary.error_message) {
+                    modalError.textContent = summary.error_message;
+                    modalErrorItem.style.display = 'block';
+                } else {
+                    modalErrorItem.style.display = 'none';
+                }
+
+                // 处理总结内容
+                if (summary.status === 'Success' && summary.summary_markdown) {
+                    modalSummaryContent.textContent = summary.summary_markdown;
+                    modalSummaryContainer.style.display = 'block';
+                    // 只有成功的总结才显示编辑按钮
+                    editSummaryBtn.classList.remove('d-none');
+                } else {
+                    modalSummaryContainer.style.display = 'none';
+                    editSummaryBtn.classList.add('d-none');
+                }
+
+                // 显示模态框
+                summaryDetailModal.show();
+            };
+
+            // 进入编辑模式
+            editSummaryBtn.addEventListener('click', function () {
+                enterEditMode();
+            });
+
+            // 保存编辑
+            saveSummaryBtn.addEventListener('click', function () {
+                saveSummaryEdit();
+            });
+
+            // 取消编辑
+            cancelEditBtn.addEventListener('click', function () {
+                exitEditMode();
+            });
+
+            // 进入编辑模式函数
+            function enterEditMode() {
+                if (currentEditIndex === -1 || !summariesData[currentEditIndex]) return;
+
+                isEditMode = true;
+                originalSummaryContent = modalSummaryContent.textContent;
+
+                // 创建编辑控制面板
+                const editControls = document.createElement('div');
+                editControls.className = 'edit-controls';
+                editControls.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-edit me-2"></i>
+                            <strong>编辑模式</strong>
+                            <small class="text-muted ms-2">修改下方内容后点击保存</small>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="autoFormat()">
+                                <i class="fas fa-magic me-1"></i>自动格式化
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-info" onclick="showMarkdownHelp()">
+                                <i class="fas fa-question-circle me-1"></i>Markdown帮助
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                // 创建编辑文本框
+                const editTextarea = document.createElement('textarea');
+                editTextarea.className = 'edit-summary-textarea';
+                editTextarea.value = originalSummaryContent;
+                editTextarea.placeholder = '请输入总结内容，支持Markdown格式...';
+
+                // 替换显示内容
+                modalSummaryContainer.insertBefore(editControls, modalSummaryContent);
+                modalSummaryContent.style.display = 'none';
+                modalSummaryContainer.appendChild(editTextarea);
+
+                // 切换按钮显示
+                editSummaryBtn.classList.add('d-none');
+                saveSummaryBtn.classList.remove('d-none');
+                cancelEditBtn.classList.remove('d-none');
+                copySummaryBtn.classList.add('d-none');
+
+                // 聚焦到文本框
+                editTextarea.focus();
+            }
+
+            // 退出编辑模式函数
+            function exitEditMode() {
+                if (!isEditMode) return;
+
+                isEditMode = false;
+
+                // 移除编辑控件
+                const editControls = modalSummaryContainer.querySelector('.edit-controls');
+                const editTextarea = modalSummaryContainer.querySelector('.edit-summary-textarea');
+
+                if (editControls) editControls.remove();
+                if (editTextarea) editTextarea.remove();
+
+                // 恢复显示
+                modalSummaryContent.style.display = 'block';
+
+                // 切换按钮显示
+                editSummaryBtn.classList.remove('d-none');
+                saveSummaryBtn.classList.add('d-none');
+                cancelEditBtn.classList.add('d-none');
+                copySummaryBtn.classList.remove('d-none');
+            }
+
+            // 保存编辑函数
+            function saveSummaryEdit() {
+                const editTextarea = modalSummaryContainer.querySelector('.edit-summary-textarea');
+                if (!editTextarea || currentEditIndex === -1) return;
+
+                const newContent = editTextarea.value.trim();
+                if (!newContent) {
+                    alert('总结内容不能为空');
+                    return;
+                }
+
+                // 显示保存中状态
+                saveSummaryBtn.disabled = true;
+                saveSummaryBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>保存中...';
+
+                // 发送保存请求
+                fetch('/api/update-summary', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        index: currentEditIndex,
+                        summary_content: newContent,
+                        file_path: summariesData[currentEditIndex].source_pdf_path
+                    }),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // 更新本地数据
+                            summariesData[currentEditIndex].summary_markdown = newContent;
+                            modalSummaryContent.textContent = newContent;
+
+                            // 更新列表中的预览
+                            updateSummaryPreview(currentEditIndex, newContent);
+
+                            // 退出编辑模式
+                            exitEditMode();
+
+                            // 显示保存成功提示
+                            showSaveIndicator();
+
+                        } else {
+                            alert('保存失败：' + (data.error || '未知错误'));
+                        }
+                    })
+                    .catch(error => {
+                        alert('保存请求失败：' + error);
+                    })
+                    .finally(() => {
+                        // 恢复按钮状态
+                        saveSummaryBtn.disabled = false;
+                        saveSummaryBtn.innerHTML = '<i class="fas fa-save me-2"></i>保存修改';
+                    });
+            }
+
+            // 更新总结预览函数
+            function updateSummaryPreview(index, newContent) {
+                const summaryItems = document.querySelectorAll('.summary-item');
+                if (summaryItems[index + 1]) { // +1 因为第一个是统计信息
+                    const previewElement = summaryItems[index + 1].querySelector('.summary-preview');
+                    if (previewElement) {
+                        previewElement.textContent = newContent.substring(0, 300) + '...';
+                    }
+                }
+            }
+
+            // 显示保存成功指示器
+            function showSaveIndicator() {
+                saveIndicator.classList.remove('d-none');
+                setTimeout(() => {
+                    saveIndicator.classList.add('d-none');
+                }, 3000);
+            }
+
+            // 自动格式化函数
+            window.autoFormat = function () {
+                const editTextarea = modalSummaryContainer.querySelector('.edit-summary-textarea');
+                if (!editTextarea) return;
+
+                let content = editTextarea.value;
+
+                // 基本的Markdown格式化
+                // 1. 确保标题前后有空行
+                content = content.replace(/([^\n])(#+\s)/g, '$1\n\n$2');
+                content = content.replace(/(#+\s.*?)([^\n])/g, '$1\n\n$2');
+
+                // 2. 确保列表项格式正确
+                content = content.replace(/^(\s*)[\-\*\+]\s/gm, '$1- ');
+
+                // 3. 确保段落之间有适当间距
+                content = content.replace(/\n{3,}/g, '\n\n');
+
+                // 4. 移除行尾空格
+                content = content.replace(/[ \t]+$/gm, '');
+
+                editTextarea.value = content;
+            };
+
+            // 显示Markdown帮助
+            window.showMarkdownHelp = function () {
+                const helpContent = `
+常用Markdown语法：
+
+# 一级标题
+## 二级标题
+### 三级标题
+
+**粗体文本**
+*斜体文本*
+
+- 无序列表项1
+- 无序列表项2
+
+1. 有序列表项1
+2. 有序列表项2
+
+> 引用文本
+
+\`代码\`
+
+[链接文本](URL)
+                `;
+
+                alert(helpContent);
+            };
+
+            // 复制总结内容功能
+            copySummaryBtn.addEventListener('click', function () {
+                const content = modalSummaryContent.textContent;
+                if (content) {
+                    navigator.clipboard.writeText(content).then(function () {
+                        // 临时改变按钮文本以提供反馈
+                        const originalText = copySummaryBtn.innerHTML;
+                        copySummaryBtn.innerHTML = '<i class="fas fa-check me-2"></i>已复制';
+                        copySummaryBtn.classList.remove('btn-primary');
+                        copySummaryBtn.classList.add('btn-success');
+
+                        setTimeout(function () {
+                            copySummaryBtn.innerHTML = originalText;
+                            copySummaryBtn.classList.remove('btn-success');
+                            copySummaryBtn.classList.add('btn-primary');
+                        }, 2000);
+                    }).catch(function (err) {
+                        alert('复制失败：' + err);
+                    });
+                }
+            });
+
+            // 监听模态框关闭事件，确保退出编辑模式
+            document.getElementById('summaryDetailModal').addEventListener('hidden.bs.modal', function () {
+                if (isEditMode) {
+                    exitEditMode();
+                }
+            });
         });
     </script>
 </body>
