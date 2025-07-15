@@ -41,7 +41,7 @@ def process_all_pdfs(
     summary_prompt_template: str,
     llm_api_func: Callable,
     model_name: str,
-    api_key: Optional[str] = None,
+    api_key: Optional[str] = None,  # 保持参数，但默认为None
     cache_path: str = "cache/summaries_cache.json",
     cache_enabled: bool = True,
     save_interval: int = 2,
@@ -58,7 +58,9 @@ def process_all_pdfs(
     success_count = fail_count = skip_count = 0
     total_time = 0
     
-    print(f"\n模型{model_name}, 开始处理文献总结...\n")
+    print(f"\n模型{model_name}, 开始处理文献总结...")
+    print(f"API Key模式: {'指定API Key' if api_key else '全局客户端轮换'}")
+    
     with tqdm(total=total_files, desc="文献总结进度", unit="file") as pbar:
         for i, pdf_path in enumerate(pdfs_to_process):
             filename = os.path.basename(pdf_path)
@@ -138,13 +140,13 @@ def process_all_pdfs(
             # 5. 准备LLM请求
             prompt = research_theme + "\n" + summary_prompt_template
 
-            # 6. 调用LLM API
+            # 6. 调用LLM API - 确保传递api_key（可能为None）
             start_time = time.time()
             summary_text, error_msg = llm_api_func(
                 model_name=model_name,
                 pdf_path=pdf_path,
                 prompt_text=prompt,
-                api_key=api_key,
+                api_key=api_key,  # 传递api_key，可能为None使用全局客户端
                 max_retries=max_retries,
                 temperature=temperature,
                 **llm_kwargs

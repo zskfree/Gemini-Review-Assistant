@@ -75,8 +75,8 @@
         }
 
         .prompt-textarea-enhanced {
-            min-height: 250px;
-            max-height: 400px;
+            min-height: 200px;
+            max-height: 300px;
             font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
             font-size: 13px;
             line-height: 1.6;
@@ -165,136 +165,96 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
         }
 
-        .fullscreen-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            z-index: 9999;
-            display: none;
-            backdrop-filter: blur(4px);
-        }
-
-        .fullscreen-editor {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 95%;
-            height: 90%;
-            max-width: 1200px;
-            background-color: white;
-            border-radius: 16px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-
         .sidebar-actions .btn {
             margin-bottom: 8px;
             border-radius: 12px;
             font-weight: 500;
         }
 
-    /* 统一的回到顶部按钮样式 - 适用于所有页面 */
-    .back-to-top {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 50%;
-        font-size: 1.4rem;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        z-index: 1000;
-        cursor: pointer;
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        backdrop-filter: blur(10px);
-    }
-    
-    .back-to-top::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        z-index: -1;
-    }
-    
-    .back-to-top.show {
-        opacity: 1;
-        visibility: visible;
-        animation: bounceIn 0.6s ease-out;
-    }
-    
-    .back-to-top:hover {
-        transform: translateY(-5px) scale(1.1);
-        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
-        background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
-    }
-    
-    .back-to-top:hover::before {
-        opacity: 1;
-    }
-    
-    .back-to-top:active {
-        transform: translateY(-3px) scale(1.05);
-    }
-    
-    /* 添加弹跳动画 */
-    @keyframes bounceIn {
-        0% {
+        /* 测试按钮样式 */
+        .btn-test {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .btn-test:hover {
+            background: linear-gradient(135deg, #20c997, #17a2b8);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-test:disabled {
+            background: #6c757d;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 统一的回到顶部按钮样式 */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.4rem;
             opacity: 0;
-            transform: scale(0.3) translateY(20px);
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
         }
-        50% {
+
+        .back-to-top.show {
             opacity: 1;
-            transform: scale(1.05) translateY(-5px);
+            visibility: visible;
+            animation: bounceIn 0.6s ease-out;
         }
-        70% {
-            transform: scale(0.9) translateY(0);
+
+        .back-to-top:hover {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
+            background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
         }
-        100% {
-            opacity: 1;
-            transform: scale(1) translateY(0);
+
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3) translateY(20px);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05) translateY(-5px);
+            }
+            70% {
+                transform: scale(0.9) translateY(0);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
         }
-    }
-    
-    /* 响应式调整 */
-    @media (max-width: 768px) {
-        .back-to-top {
-            width: 50px;
-            height: 50px;
-            bottom: 20px;
-            right: 20px;
-            font-size: 1.2rem;
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .back-to-top {
+                width: 50px;
+                height: 50px;
+                bottom: 20px;
+                right: 20px;
+                font-size: 1.2rem;
+            }
         }
-    }
-    
-    @media (max-width: 480px) {
-        .back-to-top {
-            width: 45px;
-            height: 45px;
-            bottom: 15px;
-            right: 15px;
-            font-size: 1.1rem;
-        }
-    }       
     </style>
 </head>
 
@@ -331,7 +291,10 @@
                     </ul>
                     <hr style="border-color: rgba(255,255,255,0.3);">
                     <div class="sidebar-actions">
-                        <button class="btn btn-outline-light w-100" id="saveAllBtn">
+                        <button class="btn btn-test w-100 mb-2" id="testApiBtn">
+                            <i class="fas fa-plug me-2"></i>测试API连接
+                        </button>
+                        <button class="btn btn-outline-light w-100 mb-2" id="saveAllBtn">
                             <i class="fas fa-save me-2"></i>保存所有配置
                         </button>
                         <a href="/" class="btn btn-light w-100">
@@ -369,19 +332,11 @@
                                         </div>
                                     </div>
                                     <div class="row mt-3">
-                                        <div class="col-md-8">
+                                        <div class="col-md-12">
                                             <label for="api_key" class="form-label">API密钥</label>
-                                            <input type="password" class="form-control form-control-modern" id="api_key"
-                                                placeholder="输入您的Gemini API密钥">
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">&nbsp;</label>
-                                            <div>
-                                                <button class="btn btn-outline-primary btn-modern w-100"
-                                                    id="testApiBtn">
-                                                    <i class="fas fa-plug me-1"></i>测试API连接
-                                                </button>
-                                            </div>
+                                            <textarea class="form-control form-control-modern" id="api_key" rows="3"
+                                                placeholder="输入您的Gemini API密钥，多个密钥用逗号分隔"></textarea>
+                                            <div class="form-text">支持多个API密钥轮换使用，用逗号分隔</div>
                                         </div>
                                     </div>
                                     <div class="row mt-3">
@@ -484,10 +439,6 @@
                                                                     onclick="copyToClipboard('summary_prompt')">
                                                                     <i class="fas fa-copy me-1"></i>复制
                                                                 </button>
-                                                                <button class="btn btn-sm btn-primary"
-                                                                    onclick="openFullscreenEditor('summary_prompt', '文献总结提示词')">
-                                                                    <i class="fas fa-expand me-1"></i>全屏编辑
-                                                                </button>
                                                             </div>
                                                         </div>
                                                         <div class="prompt-textarea-wrapper position-relative">
@@ -526,10 +477,6 @@
                                                                 <button class="btn btn-sm btn-outline-secondary"
                                                                     onclick="copyToClipboard('review_final_prompt')">
                                                                     <i class="fas fa-copy me-1"></i>复制
-                                                                </button>
-                                                                <button class="btn btn-sm btn-primary"
-                                                                    onclick="openFullscreenEditor('review_final_prompt', '文献综述生成提示词')">
-                                                                    <i class="fas fa-expand me-1"></i>全屏编辑
                                                                 </button>
                                                             </div>
                                                         </div>
@@ -570,10 +517,6 @@
                                                                 <button class="btn btn-sm btn-outline-secondary"
                                                                     onclick="copyToClipboard('qualitative_final_prompt')">
                                                                     <i class="fas fa-copy me-1"></i>复制
-                                                                </button>
-                                                                <button class="btn btn-sm btn-primary"
-                                                                    onclick="openFullscreenEditor('qualitative_final_prompt', '定性研究论文生成提示词')">
-                                                                    <i class="fas fa-expand me-1"></i>全屏编辑
                                                                 </button>
                                                             </div>
                                                         </div>
@@ -621,32 +564,6 @@
         </div>
     </div>
 
-    <!-- 全屏编辑器模态框 -->
-    <div class="fullscreen-overlay" id="fullscreenOverlay">
-        <div class="fullscreen-editor">
-            <div class="fullscreen-header">
-                <h5 class="mb-0" id="fullscreenTitle">
-                    <i class="fas fa-edit me-2"></i>编辑提示词
-                </h5>
-                <div>
-                    <button class="btn btn-secondary me-2" onclick="closeFullscreenEditor()">
-                        <i class="fas fa-times me-1"></i>取消
-                    </button>
-                    <button class="btn btn-primary" onclick="saveFullscreenEditor()">
-                        <i class="fas fa-save me-1"></i>保存并关闭
-                    </button>
-                </div>
-            </div>
-            <textarea class="fullscreen-textarea" id="fullscreenTextarea" placeholder="在此编辑您的提示词..."></textarea>
-            <div class="fullscreen-footer">
-                <div class="text-muted">
-                    <small><i class="fas fa-keyboard me-1"></i>提示：您可以使用 Ctrl+S 快速保存，Esc 键关闭编辑器</small>
-                </div>
-                <div class="char-counter" id="fullscreenCharCounter">0 字符</div>
-            </div>
-        </div>
-    </div>
-
     <!-- 统一的回到顶部按钮 -->
     <button id="backToTopBtn" class="back-to-top" title="回到顶部">
         <i class="fas fa-chevron-up"></i>
@@ -657,8 +574,6 @@
         document.addEventListener('DOMContentLoaded', function () {
             let currentConfig = {};
             let currentPrompts = {};
-            let currentEditingField = '';
-
             const backToTopBtn = document.getElementById('backToTopBtn');
 
             // 加载当前配置
@@ -670,18 +585,7 @@
             // 测试API按钮
             document.getElementById('testApiBtn').addEventListener('click', testApi);
 
-            // 全屏编辑器快捷键
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape' && document.getElementById('fullscreenOverlay').style.display === 'block') {
-                    closeFullscreenEditor();
-                }
-                if (e.ctrlKey && e.key === 's' && document.getElementById('fullscreenOverlay').style.display === 'block') {
-                    e.preventDefault();
-                    saveFullscreenEditor();
-                }
-            });
-
-            // 新增函数：更新字符计数器
+            // 更新字符计数器
             window.updateCharCounter = function (textareaId, badgeId) {
                 const textarea = document.getElementById(textareaId);
                 const counter = document.getElementById(textareaId + '_counter');
@@ -692,7 +596,7 @@
                 if (badge) badge.textContent = length + ' 字符';
             };
 
-            // 新增函数：复制到剪贴板
+            // 复制到剪贴板
             window.copyToClipboard = function (textareaId) {
                 const textarea = document.getElementById(textareaId);
                 navigator.clipboard.writeText(textarea.value).then(() => {
@@ -701,63 +605,6 @@
                     showAlert('danger', '复制失败，请手动复制');
                 });
             };
-
-            // 新增函数：打开全屏编辑器
-            window.openFullscreenEditor = function (textareaId, title) {
-                const textarea = document.getElementById(textareaId);
-                const overlay = document.getElementById('fullscreenOverlay');
-                const fullscreenTextarea = document.getElementById('fullscreenTextarea');
-                const fullscreenTitle = document.getElementById('fullscreenTitle');
-
-                currentEditingField = textareaId;
-                fullscreenTitle.innerHTML = `<i class="fas fa-edit me-2"></i>${title}`;
-                fullscreenTextarea.value = textarea.value;
-                overlay.style.display = 'block';
-                fullscreenTextarea.focus();
-
-                updateFullscreenCharCounter();
-            };
-
-            // 新增函数：关闭全屏编辑器
-            window.closeFullscreenEditor = function () {
-                document.getElementById('fullscreenOverlay').style.display = 'none';
-                currentEditingField = '';
-            };
-
-            // 新增函数：保存全屏编辑器内容
-            window.saveFullscreenEditor = function () {
-                const fullscreenTextarea = document.getElementById('fullscreenTextarea');
-                const originalTextarea = document.getElementById(currentEditingField);
-
-                originalTextarea.value = fullscreenTextarea.value;
-
-                // 更新字符计数器
-                const badgeMap = {
-                    'summary_prompt': 'summaryPromptBadge',
-                    'review_final_prompt': 'reviewPromptBadge',
-                    'qualitative_final_prompt': 'qualitativePromptBadge'
-                };
-
-                if (badgeMap[currentEditingField]) {
-                    updateCharCounter(currentEditingField, badgeMap[currentEditingField]);
-                }
-
-                closeFullscreenEditor();
-                showAlert('success', '提示词已更新');
-            };
-
-            // 新增函数：更新全屏编辑器字符计数器
-            function updateFullscreenCharCounter() {
-                const textarea = document.getElementById('fullscreenTextarea');
-                const counter = document.getElementById('fullscreenCharCounter');
-
-                function updateCounter() {
-                    counter.textContent = textarea.value.length + ' 字符';
-                }
-
-                textarea.addEventListener('input', updateCounter);
-                updateCounter();
-            }
 
             function loadConfig() {
                 fetch('/api/config')
@@ -851,7 +698,6 @@
                             showAlert('danger', '配置保存失败: ' + data.error);
                         } else {
                             showAlert('success', '配置保存成功!');
-                            // 更新当前配置
                             currentConfig = config;
                             currentPrompts = prompts;
                         }
@@ -865,7 +711,7 @@
                 const btn = document.getElementById('testApiBtn');
                 const originalText = btn.innerHTML;
                 btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>测试中...';
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>测试中...';
 
                 fetch('/api/config/test', {
                     method: 'POST',
@@ -902,12 +748,11 @@
                 `;
                 alertArea.appendChild(alertDiv);
 
-                // 3秒后自动移除
                 setTimeout(() => {
                     if (alertDiv.parentNode) {
                         alertDiv.parentNode.removeChild(alertDiv);
                     }
-                }, 3000);
+                }, 5000);
             }
 
             // 监听滚动事件
@@ -926,7 +771,6 @@
                     behavior: 'smooth'
                 });
             });
-
         });
     </script>
 </body>

@@ -1,5 +1,6 @@
 import os
 import time
+import json
 from typing import List, Dict, Callable, Optional, Tuple, Any, Union
 
 # 定义总结结果的类型
@@ -84,7 +85,7 @@ def generate_final_draft(
     final_prompt_template: str,
     llm_api_func_text: Callable,
     model_name: str,
-    api_key: Optional[str] = None,
+    api_key: Optional[str] = None,  # 保持参数，但默认为None
     output_file: Optional[str] = None,
     temperature: float = 1.2,
     max_retries: int = 3,
@@ -99,7 +100,7 @@ def generate_final_draft(
         final_prompt_template: 最终提示词模板
         llm_api_func_text: 处理纯文本的LLM API函数 (llm_api.call_llm_text_only)
         model_name: LLM模型名称
-        api_key: API密钥（可选）
+        api_key: API密钥（可选，为None时使用全局客户端轮换）
         output_file: 输出文件路径（可选）
         temperature: LLM温度参数
         max_retries: 最大重试次数
@@ -109,6 +110,7 @@ def generate_final_draft(
         Tuple[Optional[str], Optional[str]]: (生成的文稿, 错误消息)
     """
     print("\n正在准备生成最终文稿...")
+    print(f"API Key模式: {'指定API Key' if api_key else '全局客户端轮换'}")
     
     # 1. 构建最终提示词
     start_time = time.time()
@@ -126,7 +128,7 @@ def generate_final_draft(
     final_draft_text, error_msg = llm_api_func_text(
         model_name=model_name,
         prompt_text=final_prompt,
-        api_key=api_key,
+        api_key=api_key,  # 传递api_key，可能为None使用全局客户端
         max_retries=max_retries,
         temperature=temperature,
         **llm_kwargs
@@ -156,7 +158,6 @@ if __name__ == "__main__":
     # 示例用法
     from config_loader import load_config, load_all_prompts
     from llm_api import call_llm_text_only
-    import json
     
     # 加载配置和提示词
     config = load_config()
@@ -164,7 +165,8 @@ if __name__ == "__main__":
     
     # 设置参数
     model_name = config['llm']['final_draft_model_name'] 
-    api_key = config['llm']['api_key']
+    # 使用None来启用全局客户端轮换，而不是直接从配置获取
+    api_key = None  # 修改这里：使用None而不是从配置获取
     research_theme = prompts['research_theme']
     review_final_prompt = prompts['review_final_prompt']
     
@@ -182,7 +184,7 @@ if __name__ == "__main__":
         final_prompt_template=review_final_prompt,
         llm_api_func_text=call_llm_text_only,
         model_name=model_name,
-        api_key=api_key,
+        api_key=api_key,  # 传递None使用全局客户端
         output_file=output_file,
         temperature=config.get('llm', {}).get('temperature', 1.2),
         max_retries=config.get('llm', {}).get('max_retries', 3)
@@ -192,4 +194,4 @@ if __name__ == "__main__":
         print("最终文稿生成完成!")
     else:
         print(f"最终文稿生成失败: {error}")
-
+        

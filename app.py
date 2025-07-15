@@ -112,26 +112,27 @@ def test_config():
         test_type = request.json.get('type')
         
         if test_type == 'api':
-            # 测试API连接
-            client = llm_api.get_global_client()
-            if client is None:
-                return jsonify({"success": False, "message": "API客户端初始化失败"})
+            # 直接使用llm_api的文本调用功能测试
+            config = config_loader.load_config("config.yaml")
+            model_name = config.get('llm', {}).get('model_name', 'gemini-2.5-flash')
             
             # 尝试一个简单的API调用
             result, error = llm_api.call_llm_text_only(
-                model_name="gemini-2.5-flash",
-                prompt_text="请回复：API测试成功",
-                max_retries=1
+                model_name=model_name,
+                prompt_text="请回复：测试成功",
+                api_key=None,  # 使用全局配置
+                max_retries=1,
+                temperature=0.1
             )
             
-            if result:
-                return jsonify({"success": True, "message": "API连接测试成功"})
+            if result and "测试成功" in result:
+                return jsonify({"success": True, "message": "API连接测试成功！"})
             else:
-                return jsonify({"success": False, "message": f"API测试失败: {error}"})
+                return jsonify({"success": False, "message": f"API测试失败: {error or '返回结果异常'}"})
         
         return jsonify({"success": False, "message": "未知的测试类型"})
     except Exception as e:
-        return jsonify({"success": False, "message": f"测试失败: {e}"})
+        return jsonify({"success": False, "message": f"测试失败: {str(e)}"})
 
 @app.route('/reference-check')
 def reference_check_page():
@@ -275,9 +276,9 @@ def process_pdfs_background(selected_pdfs, config):
     try:
         # 加载配置
         prompts = config_loader.load_all_prompts(config)
-        api_key = config.get('llm', {}).get('api_key') or os.getenv("GEMINI_API_KEY")
-        if not api_key or not all([prompts.get('research_theme'), prompts.get('summary_prompt')]):
-            processing_status["message"] = "配置文件或环境变量缺失必要信息"
+        # 不要传递api_key参数，让llm_api使用全局客户端列表
+        if not all([prompts.get('research_theme'), prompts.get('summary_prompt')]):
+            processing_status["message"] = "配置文件缺失必要信息"
             processing_status["is_processing"] = False
             return
         
@@ -311,7 +312,7 @@ def process_pdfs_background(selected_pdfs, config):
             research_theme=prompts['research_theme'],
             summary_prompt_template=prompts['summary_prompt'],
             llm_api_func=llm_api.call_llm_with_pdf,
-            api_key=api_key,
+            api_key=None,  # 不传递api_key，使用全局客户端列表
             model_name=config['llm'].get('model_name', 'gemini-2.5-flash'),
             cache_path=config['paths']['cache_file'],
             cache_enabled=config.get('cache', {}).get('enabled', True),
@@ -352,7 +353,8 @@ def generate_final_background(output_type, config):
     try:
         # 加载配置
         prompts = config_loader.load_all_prompts(config)
-        api_key = config.get('llm', {}).get('api_key') or os.getenv("GEMINI_API_KEY")
+        # 不要直接从配置获取api_key，使用None让系统使用全局客户端
+        # api_key = config.get('llm', {}).get('api_key') or os.getenv("GEMINI_API_KEY")
         
         # 获取选择的提示词模板
         final_prompt_key = 'review_final_prompt' if output_type == 'review' else 'qualitative_final_prompt'
@@ -398,14 +400,15 @@ def generate_final_background(output_type, config):
         else:
             output_file = base_output_file
         
-        # 生成最终文稿
+        # 生成最终文稿 - 使用None让系统使用全局客户端轮换
+        print("正在准备生成最终文稿...")
         final_draft, error_msg = final_generator.generate_final_draft(
             successful_summaries=successful_summaries,
             research_theme=prompts['research_theme'],
             final_prompt_template=final_prompt_template,
             llm_api_func_text=llm_api.call_llm_text_only,
             model_name=config['llm'].get('final_draft_model_name', 'gemini-2.5-flash'),
-            api_key=api_key,
+            api_key=None,  # 修改这里：使用None而不是从配置获取
             output_file=output_file,
             temperature=config['llm'].get('temperature', 1.2),
             max_retries=config['llm'].get('max_retries', 3)

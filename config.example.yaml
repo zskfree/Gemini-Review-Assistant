@@ -14,7 +14,7 @@
 llm:
   model_name: "gemini-2.5-flash"                   # 用于文献总结的模型
   final_draft_model_name: "gemini-2.5-pro"         # (可选) 用于最终生成的模型，可能需要更强能力
-  api_key: "YOUR_GEMINI_API_KEY"                   # 替换为您的 Gemini API 密钥
+  api_key: "YOUR_GEMINI_API_KEY"                   # 替换为您的 Gemini API 密钥，多个API密钥用逗号分隔
   temperature: 1.5                                 # 0.0 表示确定性输出，2.0 表示高度随机
   max_retries: 5                                   # 最大重试次数
 
