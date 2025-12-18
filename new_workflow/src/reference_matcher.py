@@ -38,8 +38,16 @@ def align_pdfs_with_references(pdf_files: List[str], references_text: str) -> Di
     2. 返回一个 JSON 对象，键是 PDF 文件名，值是对应的完整参考文献字符串。
     3. 如果某个文件没有找到对应的参考文献，对应的值设为 null。
     4. 仅返回 JSON 格式结果，不要包含 Markdown 代码块标记或其他文字。
-    """
-    
+    5. 确保每个参考文献只被分配给一个文件，避免一对多映射关系。
+    6. 如果无法确定匹配关系，请将该文件的值设为 null。
+    7. 值不要包含参考文献的编号。
+    8. 示例输出格式：
+    {{
+        "知情交易、信息不确定性与股票风险溢价.pdf": "陈国进, 张润泽, 谢沛霖, 等. 知情交易、信息不确定性与股票风险溢价[J]. 管理科学学报, 2019, 22(4): 53-74.",
+        "paper2.pdf": null,
+        ...
+    }}
+    """    
     print("正在调用大模型进行文献对齐...")
     try:
         response = llm.generate(prompt=prompt)

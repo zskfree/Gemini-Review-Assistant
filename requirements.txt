@@ -7,3 +7,4 @@ flask              # (推荐) 用于创建Web应用
 openai             # (可选) 如果需要使用OpenAI API
 zhipuai           # (可选) 如果需要使用智谱AI API
 markitdown        # (推荐) 用于生成Markdown格式的报告
+pypinyin          # (可选) 用于处理中文拼音

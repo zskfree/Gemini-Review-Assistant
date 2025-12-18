@@ -8,6 +8,8 @@ from src.pdf_processor import get_pdf_files
 from src.reference_matcher import load_or_create_mapping
 from src.summary_generator import batch_process_pdfs, save_summary_results
 from src.prompts import get_summary_prompt
+from src.results_exporter import export_from_json
+
 
 def run_workflow():
     """
@@ -55,11 +57,11 @@ def run_workflow():
     
     # 保存结果
     if summary_results:
-        save_summary_results(summary_results, summary_save_path)
-        print(f"工作流完成！共处理 {len(summary_results)} 个文件")
+        csv_path = r"new_workflow/txts_zsk/summary_sorted.csv"
+        count = export_from_json(summary_results, csv_path)
+        print(f"导出完成，共 {count} 条")
     else:
         print("没有新的文件需要处理")
 
 if __name__ == "__main__":
     run_workflow()
-    
