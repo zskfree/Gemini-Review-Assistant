@@ -1,0 +1,45 @@
+# 网络代理配置
+proxy:
+  url: "http://127.0.0.1:7890"  # 如果不使用代理，请留空字符串 ""
+
+# 针对不同任务使用模型配置
+model:
+  literature_summary:
+    provider: "zhipu"
+    model_name: "glm-4.6v-flash"
+    temperature: 0.2
+
+  reference_extraction:
+    provider: "zhipu"
+    model_name: "glm-4.6v-flash"
+    temperature: 0.2
+
+# API配置
+api:
+  provider: "zhipu"  # 可选值：gemini, openai, zhipu
+
+  # Gemini 默认配置
+  genai_key: ""
+  genai_base_url: ""
+  genai_model: "gemini-flash-lite-latest"
+
+  # OpenAI 默认配置  openrouter.ai  https://openrouter.ai/models
+  openai_key: ""
+  openai_base_url: "https://openrouter.ai/api/v1"
+  openai_model: "mistralai/devstral-2512:free"
+
+  # 智谱AI 默认配置（免费模型 GLM-4.6v-flash、glm-4.5-flash）
+  zhipu_key: ""
+  zhipu_model: "glm-4.6v-flash"
+  zhipu_enable_thinking: true  # 是否启用深度思考模式
+
+  default_temperature: 0.2
+  max_retries: 3
+
+# 业务路径配置
+paths:
+  pdf_folder: "new_workflow/pdfs"
+  research_topic_file: "new_workflow/txts/研究主题.txt"
+  reference_file: "new_workflow/txts/参考文献列表.txt"
+  reference_mapping: "new_workflow/txts/reference_mapping.json"   # 运行后会生成此文件，文献引用与pdf的映射关系
+  summary_save_path: "new_workflow/txts/literature_summary.json"  # 运行后会生成此文件，所有的文献总结结果

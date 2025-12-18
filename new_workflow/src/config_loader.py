@@ -1,0 +1,77 @@
+# config_loader.py
+import yaml
+import os
+from typing import Dict, Any, List
+
+def load_config(config_path: str = None) -> Dict[str, Any]:
+    """
+    加载 YAML 配置文件
+    
+    如果不指定路径，会从以下位置按顺序查找：
+    1. 当前工作目录的 new_workflow/config.yaml
+    2. 脚本所在目录向上查找
+    """
+    if config_path is None:
+        # 优先查找项目根目录下的 new_workflow/config.yaml
+        possible_paths = [
+            "new_workflow/config.yaml",  # 从项目根目录运行
+            os.path.join(os.path.dirname(__file__), "../config.yaml"),  # 从 src 目录运行
+            os.path.join(os.path.dirname(__file__), "../../new_workflow/config.yaml"),  # 备用路径
+        ]
+        
+        config_path = None
+        for path in possible_paths:
+            if os.path.exists(path):
+                config_path = path
+                break
+        
+        if config_path is None:
+            raise FileNotFoundError(
+                f"配置文件未找到。尝试了以下路径:\n" + 
+                "\n".join(possible_paths)
+            )
+    
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = yaml.safe_load(f)
+        return config
+    except FileNotFoundError:
+        print(f"错误: 配置文件 '{config_path}' 未找到。")
+        raise
+    except yaml.YAMLError as e:
+        print(f"错误: 解析配置文件 '{config_path}' 失败: {e}")
+        raise
+    except Exception as e:
+        print(f"加载配置时发生未知错误: {e}")
+        raise
+
+def load_text_file(file_path: str) -> str:
+    """加载指定路径的文本文件内容"""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        print(f"错误: 文本文件 '{file_path}' 未找到。")
+        return ""
+    except Exception as e:
+        print(f"读取文件 '{file_path}' 时出错: {e}")
+        return ""
+
+def get_config(key: str, default: Any = None) -> Any:
+    """获取配置项的值，支持嵌套键（使用点号分隔）"""
+    try:
+        config = load_config()
+        keys = key.split('.')
+        value = config
+        for k in keys:
+            value = value[k]
+        return value
+    except (KeyError, TypeError):
+        return default
+    except Exception as e:
+        print(f"获取配置项 '{key}' 失败: {e}")
+        return default
+
+if __name__ == "__main__":
+    api_key = get_config("api.genai_key")
+    print(f"API Key: {api_key[:50]}..." if api_key else "API Key not found")

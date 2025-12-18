@@ -4,3 +4,6 @@ PyYAML             # 用于读取 config.yaml
 requests           # (如果需要直接下载PDF或补充API交互)
 tqdm               # (推荐) 用于显示处理进度条
 flask              # (推荐) 用于创建Web应用
+openai             # (可选) 如果需要使用OpenAI API
+zhipuai           # (可选) 如果需要使用智谱AI API
+markitdown        # (推荐) 用于生成Markdown格式的报告
