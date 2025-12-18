@@ -1,897 +1,174 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini 文献综述助手 - 智能学术研究工具</title>
-    <meta name="description" content="基于 Google Gemini AI 的智能文献综述生成工具，提供完整的 Web 界面和高级功能，帮助研究者快速从 PDF 文献生成高质量学术文稿。">
-    <meta name="keywords" content="文献综述,Gemini AI,学术研究,PDF处理,人工智能,文献分析">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap"
-        rel="stylesheet">
+    <title>Gemini Review Assistant</title>
     <style>
         :root {
-            --primary-color: #4285F4;
-            --secondary-color: #34A853;
-            --accent-color: #FBBC05;
-            --danger-color: #EA4335;
-            --dark-color: #202124;
-            --light-gray: #f8f9fa;
-            --text-color: #5f6368;
-            --heading-color: #202124;
-            --border-radius: 12px;
-            --shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            --background-color: #1a1a1a;
+            --text-color: #f0f0f0;
+            --accent-color: #00ff99;
+            --secondary-color: #888;
+            --container-width: 800px;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
         }
 
         body {
-            font-family: 'Noto Sans SC', sans-serif;
-            background-color: #fff;
+            background-color: var(--background-color);
             color: var(--text-color);
-            scroll-behavior: smooth;
+            font-family: 'Courier New', Courier, monospace;
+            line-height: 1.6;
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
         }
 
-        .section {
-            padding: 80px 0;
+        .container {
+            max-width: var(--container-width);
+            width: 100%;
         }
 
-        .section-title {
-            font-weight: 700;
-            color: var(--heading-color);
-            margin-bottom: 1rem;
-        }
-
-        .section-subtitle {
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
+        header {
+            text-align: left;
             margin-bottom: 4rem;
         }
 
-        /* --- Navbar --- */
-        .navbar {
-            transition: all 0.3s ease;
-            background-color: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        /* --- Hero Section --- */
-        .hero-section {
-            padding: 100px 0;
-            background-color: var(--light-gray);
-            overflow: hidden;
-        }
-
-        .hero-content h1 {
-            font-size: 3.2rem;
-            font-weight: 700;
-            color: var(--heading-color);
-        }
-
-        .hero-content .lead {
-            font-size: 1.2rem;
-            margin: 2rem 0;
-        }
-
-        .btn-hero {
-            padding: 12px 30px;
-            border-radius: 50px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary-custom {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        .btn-primary-custom:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 15px rgba(66, 133, 244, 0.4);
-        }
-
-        .hero-visual {
-            background: white;
-            padding: 2rem;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            transform: rotate(3deg);
-        }
-
-        .hero-visual .visual-header {
-            font-weight: 500;
-            color: var(--heading-color);
-            margin-bottom: 1rem;
-        }
-
-        .hero-visual .visual-item {
-            display: flex;
-            align-items: center;
-            padding: 0.8rem;
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-        }
-
-        .hero-visual .visual-item.pdf {
-            background-color: rgba(234, 67, 53, 0.1);
-        }
-
-        .hero-visual .visual-item.arrow {
-            justify-content: center;
-        }
-
-        .hero-visual .visual-item.summary {
-            background-color: rgba(52, 168, 83, 0.1);
-        }
-
-        /* --- Features Section --- */
-        .feature-card {
-            background: white;
-            padding: 2.5rem 2rem;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            transition: all 0.3s ease;
-            border: 1px solid #e8e8e8;
-            height: 100%;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-8px);
-            border-color: var(--primary-color);
-        }
-
-        .feature-icon {
-            font-size: 2.5rem;
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            margin: 0 auto 1.5rem auto;
-        }
-
-        /* --- How-to Section (Timeline) --- */
-        .timeline {
-            position: relative;
-            padding: 2rem 0;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .timeline::before {
-            content: '';
-            position: absolute;
-            left: 50%;
-            top: 0;
-            bottom: 0;
-            width: 3px;
-            background: #e9ecef;
-            transform: translateX(-50%);
-        }
-
-        .timeline-item {
-            position: relative;
-            margin-bottom: 50px;
-            width: 50%;
-        }
-
-        .timeline-item:nth-child(odd) {
-            left: 0;
-            padding-right: 40px;
-            text-align: right;
-        }
-
-        .timeline-item:nth-child(even) {
-            left: 50%;
-            padding-left: 40px;
-        }
-
-        .timeline-content {
-            background: white;
-            padding: 1.5rem 2rem;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            position: relative;
-        }
-
-        .timeline-content::after {
-            content: '';
-            position: absolute;
-            top: 20px;
-            width: 0;
-            height: 0;
-            border-style: solid;
-        }
-
-        .timeline-item:nth-child(odd) .timeline-content::after {
-            right: -15px;
-            border-width: 15px 0 15px 15px;
-            border-color: transparent transparent transparent white;
-        }
-
-        .timeline-item:nth-child(even) .timeline-content::after {
-            left: -15px;
-            border-width: 15px 15px 15px 0;
-            border-color: transparent white transparent transparent;
-        }
-
-        .timeline-icon {
-            position: absolute;
-            left: 50%;
-            top: 15px;
-            transform: translateX(-50%);
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            font-weight: 700;
-            border: 4px solid var(--light-gray);
-            z-index: 1;
-        }
-
-        .timeline-item:nth-child(even) .timeline-icon {
-            left: -25px;
-        }
-
-        .timeline-item:nth-child(odd) .timeline-icon {
-            right: -25px;
-            left: auto;
-        }
-
-        .timeline-item::after {
-            content: "";
-            display: table;
-            clear: both;
-        }
-
-        /* --- Installation Section --- */
-        .install-section {
-            background-color: var(--light-gray);
-        }
-
-        .nav-pills .nav-link {
-            color: var(--text-color);
-            font-weight: 500;
-            padding: 0.8rem 1.5rem;
-        }
-
-        .nav-pills .nav-link.active {
-            background-color: var(--primary-color);
-            color: white;
-            box-shadow: 0 4px 10px rgba(66, 133, 244, 0.3);
-        }
-
-        .code-block {
-            background: #282c34;
-            color: #abb2bf;
-            border-radius: var(--border-radius);
-            padding: 1.5rem;
-            font-family: 'Fira Code', 'Courier New', monospace;
-            overflow-x: auto;
-            margin-top: 1.5rem;
-            border: 1px solid #3a4048;
-        }
-
-        .code-block pre {
+        h1 {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 3rem;
+            color: var(--accent-color);
+            text-transform: uppercase;
             margin: 0;
-            font-size: 0.9em;
-        }
-
-        .code-block .comment {
-            color: #5c6370;
-        }
-
-        .code-block .keyword {
-            color: #c678dd;
-        }
-
-        .code-block .string {
-            color: #98c379;
-        }
-
-        .code-block .function {
-            color: #61afef;
-        }
-
-        .code-block .number {
-            color: #d19a66;
-        }
-
-        /* --- Advanced & FAQ --- */
-        .accordion-button:not(.collapsed) {
-            color: white;
-            background-color: var(--primary-color);
-        }
-
-        .accordion-button:focus {
-            box-shadow: 0 0 0 0.25rem rgba(66, 133, 244, 0.25);
-        }
-
-        .accordion-item {
-            border-radius: var(--border-radius);
-            border: 1px solid #dee2e6;
-            margin-bottom: 1rem;
-            overflow: hidden;
-        }
-
-        .accordion-header {
-            border-radius: var(--border-radius);
-        }
-
-        /* --- Tech Stack --- */
-        .tech-badge {
             display: inline-block;
-            background-color: var(--light-gray);
-            color: var(--text-color);
-            padding: 0.8rem 1.5rem;
-            border-radius: 50px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            border: 1px solid #e0e0e0;
         }
 
-        .tech-badge:hover {
-            background-color: var(--primary-color);
-            color: white;
-            transform: translateY(-3px);
-            border-color: var(--primary-color);
+        h1::after {
+            content: '_';
+            animation: blink 1s step-end infinite;
+            margin-left: 0.5rem;
         }
 
-        /* --- Footer --- */
-        .footer {
-            background-color: var(--dark-color);
-            color: #ccc;
-            padding: 60px 0 30px 0;
+        .tagline {
+            font-size: 1.2rem;
+            color: var(--secondary-color);
+            margin-top: 0.5rem;
         }
 
-        .footer h5 {
-            color: white;
-            font-weight: 500;
+        h2 {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 1.5rem;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 0.5rem;
+            margin-top: 3rem;
         }
 
-        .footer a {
-            color: #ccc;
+        p, li {
+            font-size: 1rem;
+        }
+
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        li::before {
+            content: '» ';
+            color: var(--accent-color);
+            margin-right: 0.5rem;
+        }
+
+        pre {
+            background-color: #2b2b2b;
+            border: 1px solid #444;
+            padding: 1.5rem;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 0.9rem;
+        }
+
+        code {
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        footer {
+            margin-top: 5rem;
+            text-align: center;
+            color: var(--secondary-color);
+            font-size: 0.8rem;
+        }
+
+        a {
+            color: var(--accent-color);
             text-decoration: none;
-            transition: color 0.3s ease;
+            border-bottom: 1px dotted var(--accent-color);
         }
 
-        .footer a:hover {
-            color: white;
-        }
-
-        .footer .list-unstyled li {
-            margin-bottom: 0.5rem;
-        }
-
-        /* --- Animation --- */
-        .fade-in-up {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-        }
-
-        .fade-in-up.is-visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* --- Responsive Design for Mobile --- */
-        @media (max-width: 767.98px) {
-            .hero-content h1 {
-                font-size: 2.4rem;
-            }
-
-            .hero-section {
-                padding: 60px 0;
-                text-align: center;
-            }
-
-            .hero-content .d-flex {
-                justify-content: center;
-            }
-
-            .section {
-                padding: 60px 0;
-            }
-
-            .section-subtitle {
-                margin-bottom: 3rem;
-            }
-
-            /* --- Timeline on Mobile --- */
-            .timeline::before {
-                left: 25px;
-                transform: translateX(0);
-            }
-
-            .timeline-item {
-                width: 100%;
-                padding-left: 70px;
-                padding-right: 15px;
-                margin-bottom: 30px;
-            }
-
-            .timeline-item:nth-child(odd),
-            .timeline-item:nth-child(even) {
-                left: 0;
-                text-align: left;
-                padding-left: 70px;
-                padding-right: 15px;
-            }
-
-            .timeline-icon {
-                left: 25px;
-                transform: translateX(-50%);
-            }
-
-            .timeline-item:nth-child(odd) .timeline-icon,
-            .timeline-item:nth-child(even) .timeline-icon {
-                left: 25px;
-                right: auto;
-            }
-
-            .timeline-content::after {
-                left: -15px;
-                border-width: 15px 15px 15px 0;
-                border-color: transparent white transparent transparent;
-            }
-
-            .timeline-item:nth-child(odd) .timeline-content::after {
-                right: auto;
-                left: -15px;
-                border-width: 15px 15px 15px 0;
-                border-color: transparent white transparent transparent;
-            }
+        a:hover {
+            color: var(--text-color);
+            background-color: var(--accent-color);
         }
     </style>
 </head>
-
 <body>
-    <!-- 导航栏 -->
-    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="#">
-                <i class="fas fa-robot text-primary me-2"></i>
-                Gemini 文献综述助手
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="#features">核心功能</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#howto">使用流程</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#install">安装指南</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#advanced">高级功能</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#faq">常见问题</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#tech">技术栈</a></li>
+    <div class="container">
+        <header>
+            <h1>Gemini Review Assistant</h1>
+            <p class="tagline">一个基于 AI 的文献综述自动化工作流</p>
+        </header>
+
+        <main>
+            <section class="about">
+                <h2>// 项目简介</h2>
+                <p>
+                    本工具旨在利用大语言模型（LLM）的能力，自动化处理学术文献的综述流程。通过读取 PDF 文件，提取核心信息，生成摘要，并匹配参考文献，极大地提升了研究人员的工作效率。
+                </p>
+            </section>
+
+            <section class="workflow">
+                <h2>// 核心工作流 (new_workflow)</h2>
+                <p>项目当前的核心逻辑位于 <code>new_workflow</code> 目录，主要包含以下模块：</p>
+                <ul>
+                    <li><strong>workflow.py</strong>: 整个工作流的入口和协调器。</li>
+                    <li><strong>config_loader.py</strong>: 加载项目配置。</li>
+                    <li><strong>pdf_processor.py</strong>: 核心的 PDF 处理与信息提取模块。</li>
+                    <li><strong>summary_generator.py</strong>: 调用 LLM 生成文本摘要。</li>
+                    <li><strong>reference_matcher.py</strong>: 匹配和验证参考文献。</li>
+                    <li><strong>results_exporter.py</strong>: 将最终结果导出为报告。</li>
                 </ul>
-            </div>
-        </div>
-    </nav>
+            </section>
 
-    <!-- 英雄区域 -->
-    <section class="hero-section">
-        <div class="container">
-            <div class="row align-items-center g-5">
-                <div class="col-lg-6 hero-content">
-                    <h1 class="fade-in-up">让 AI 赋能您的学术研究</h1>
-                    <p class="lead fade-in-up" style="transition-delay: 0.1s;">
-                        基于 Google Gemini AI 的智能文献综述生成工具。告别繁琐的文献阅读与手动总结，一键生成高质量学术文稿，让您专注于创新与发现。
-                    </p>
-                    <div class="d-flex gap-3 fade-in-up" style="transition-delay: 0.2s;">
-                        <a href="#install" class="btn btn-hero btn-primary-custom">快速开始</a>
-                        <a href="https://github.com/zskfree/Gemini-Review-Assistant" target="_blank"
-                            class="btn btn-hero btn-outline-secondary">查看源码</a>
-                    </div>
-                </div>
-                <div class="col-lg-6 d-none d-lg-block">
-                    <div class="hero-visual fade-in-up" style="transition-delay: 0.3s;">
-                        <h6 class="visual-header">处理流程示意</h6>
-                        <div class="visual-item pdf"><i class="fas fa-file-pdf text-danger me-2"></i>
-                            <span>多篇文献.pdf</span>
-                        </div>
-                        <div class="visual-item arrow"><i class="fas fa-arrow-down fa-2x text-primary"></i></div>
-                        <div class="visual-item summary"><i class="fas fa-file-alt text-success me-2"></i>
-                            <span>文献综述.docx</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+            <section class="usage">
+                <h2>// 如何运行</h2>
+                <p>要启动本项目，请遵循以下步骤：</p>
+                <pre><code># 1. 安装依赖
+pip install -r requirements.txt
 
-    <!-- 功能特色 -->
-    <section id="features" class="section">
-        <div class="container">
-            <div class="text-center">
-                <h2 class="section-title">✨ 核心功能</h2>
-                <p class="section-subtitle">我们提供的不只是工具，更是一套完整的智能学术研究解决方案。</p>
-            </div>
-            <div class="row g-4 justify-content-center">
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card text-center fade-in-up">
-                        <div class="feature-icon" style="background-color: var(--primary-color);"><i
-                                class="fas fa-robot"></i></div>
-                        <h5>🤖 智能文献总结</h5>
-                        <p>基于 Gemini AI 自动提取关键信息，支持多种模型选择，生成精准、连贯的单篇文献摘要。</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card text-center fade-in-up" style="transition-delay: 0.1s;">
-                        <div class="feature-icon" style="background-color: var(--secondary-color);"><i
-                                class="fas fa-file-alt"></i></div>
-                        <h5>📄 多格式输出</h5>
-                        <p>支持一键生成“文献综述”和“定性研究论文”两种专业学术文稿格式。</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card text-center fade-in-up" style="transition-delay: 0.2s;">
-                        <div class="feature-icon" style="background-color: var(--accent-color);"><i
-                                class="fas fa-desktop"></i></div>
-                        <h5>🌐 现代化 Web 界面</h5>
-                        <p>响应式设计，四步式操作流程，配置管理、文献核对、在线编辑，功能完善。</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card text-center fade-in-up" style="transition-delay: 0.3s;">
-                        <div class="feature-icon" style="background-color: var(--danger-color);"><i
-                                class="fas fa-bolt"></i></div>
-                        <h5>⚡ 智能缓存机制</h5>
-                        <p>智能缓存已处理的文献总结，避免重复分析和API调用，大幅提升效率。</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card text-center fade-in-up" style="transition-delay: 0.4s;">
-                        <div class="feature-icon" style="background-color: #6c757d;"><i class="fas fa-tasks"></i></div>
-                        <h5>📊 实时进度监控</h5>
-                        <p>处理状态可视化，清晰展示当前进度、成功/失败数量和预计剩余时间。</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card text-center fade-in-up" style="transition-delay: 0.5s;">
-                        <div class="feature-icon" style="background-color: #17a2b8;"><i class="fas fa-cogs"></i></div>
-                        <h5>🔧 在线配置管理</h5>
-                        <p>Web 界面直接编辑配置和提示词，支持 API 测试和多密钥轮换。</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card text-center fade-in-up" style="transition-delay: 0.6s;">
-                        <div class="feature-icon" style="background-color: #28a745;"><i class="fas fa-check-circle"></i>
-                        </div>
-                        <h5>📋 参考文献核对</h5>
-                        <p>智能匹配 PDF 文件与引用信息，支持在线重命名和状态检查。</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card text-center fade-in-up" style="transition-delay: 0.7s;">
-                        <div class="feature-icon" style="background-color: #fd7e14;"><i class="fas fa-edit"></i></div>
-                        <h5>📝 总结内容编辑</h5>
-                        <p>支持在线编辑和优化文献总结内容，提高最终文稿质量。</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+# 2. 配置环境
+#    - 将 config example.yaml 复制为 config.yaml
+#    - 在 config.yaml 中填入您的 API 密钥等信息
+cp new_workflow/config\ example.yaml new_workflow/config.yaml
 
-    <!-- 使用流程 -->
-    <section id="howto" class="section" style="background-color: var(--light-gray);">
-        <div class="container">
-            <div class="text-center">
-                <h2 class="section-title">📋 四步完成文献综述</h2>
-                <p class="section-subtitle">简化的工作流，让复杂的研究过程变得前所未有的简单。</p>
-            </div>
-            <div class="timeline">
-                <div class="timeline-item fade-in-up">
-                    <div class="timeline-icon">1</div>
-                    <div class="timeline-content">
-                        <h5>🔍 步骤一：文献准备与核对</h5>
-                        <p>将 PDF 文献放入目录，添加引用信息，使用参考文献核对功能检查匹配情况，可在线重命名文件。</p>
-                    </div>
-                </div>
-                <div class="timeline-item fade-in-up">
-                    <div class="timeline-icon">2</div>
-                    <div class="timeline-content">
-                        <h5>⚙️ 步骤二：配置管理</h5>
-                        <p>访问配置管理页面设置 API 密钥和模型参数，编辑研究主题和提示词模板，测试 API 连接。</p>
-                    </div>
-                </div>
-                <div class="timeline-item fade-in-up">
-                    <div class="timeline-icon">3</div>
-                    <div class="timeline-content">
-                        <h5>📖 步骤三：文献总结</h5>
-                        <p>选择要处理的 PDF 文件，系统自动调用 Gemini AI 生成总结，实时监控进度，可在线编辑优化内容。</p>
-                    </div>
-                </div>
-                <div class="timeline-item fade-in-up">
-                    <div class="timeline-icon">4</div>
-                    <div class="timeline-content">
-                        <h5>📝 步骤四：生成最终文稿</h5>
-                        <p>选择输出类型（文献综述/定性研究论文），一键整合所有总结，生成结构完整的最终文稿并下载。</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+# 3. 准备输入文件
+#    - 将需要处理的 PDF 文件放入 new_workflow/pdfs 目录
+#    - 在 new_workflow/txts/研究主题.txt 中定义您的研究主题
+#    - 在 new_workflow/txts/参考文献列表.txt 中提供参考文献
 
-    <!-- 安装指南 -->
-    <section id="install" class="section install-section">
-        <div class="container">
-            <div class="text-center">
-                <h2 class="section-title">🚀 轻松部署与配置</h2>
-                <p class="section-subtitle">我们提供了清晰的指引，让您在几分钟内即可运行自己的智能文献助手。</p>
-            </div>
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <ul class="nav nav-pills justify-content-center mb-4" id="pills-tab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="pills-install-tab" data-bs-toggle="pill"
-                                data-bs-target="#pills-install" type="button" role="tab">安装步骤</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="pills-config-tab" data-bs-toggle="pill"
-                                data-bs-target="#pills-config" type="button" role="tab">配置说明</button>
-                        </li>
-                    </ul>
-                    <div class="tab-content" id="pills-tabContent">
-                        <div class="tab-pane fade show active" id="pills-install" role="tabpanel">
-                            <div class="code-block">
-                                <pre><code><span class="comment"># 1. 克隆项目到本地</span>
-<span class="keyword">git</span> clone &lt;project-url&gt;
-<span class="keyword">cd</span> Gemini-Review-Assistant
+# 4. 运行工作流
+python new_workflow/workflow.py</code></pre>
+            </section>
+        </main>
 
-<span class="comment"># 2. 使用 pip 安装所有依赖</span>
-<span class="keyword">pip</span> install -r requirements.txt
-
-<span class="comment"># 3. 创建并编辑配置文件 (详见配置说明)</span>
-<span class="keyword">cp</span> config.example.yaml config.yaml
-
-<span class="comment"># 4. 启动 Web 应用</span>
-<span class="keyword">python</span> app.py</code></pre>
-                            </div>
-                        </div>
-                        <div class="tab-pane fade" id="pills-config" role="tabpanel">
-                            <div class="code-block">
-                                <pre><code><span class="comment"># config.yaml</span>
-<span class="function">llm:</span>
-  <span class="string">model_name: "gemini-2.5-flash"</span>         <span class="comment"># 文献总结模型（建议使用支持 PDF 输入的模型）</span>
-  <span class="string">final_draft_model_name: "gemini-2.5-pro"</span> <span class="comment"># 最终生成模型（建议使用上下长度更长、能力更强的模型）</span>
-  <span class="string">api_key: "YOUR_API_KEY"</span>              <span class="comment"># 在此填入您的密钥</span>
-  <span class="string">temperature: 1.3</span>                     <span class="comment"># AI 创造性 (0-2)</span>
-  <span class="string">max_retries: 5</span>                       <span class="comment"># API 调用失败重试次数</span>
-
-<span class="function">paths:</span>
-  <span class="string">pdf_dir: "PDF_Files/"</span>
-  <span class="string">txt_dir: "TXT_Files/"</span>
-  <span class="string">cache_file: "cache/summaries_cache.json"</span>
-
-<span class="function">cache:</span>
-  <span class="string">enabled: true</span>                        <span class="comment"># 是否启用缓存</span></code></pre>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- 高级功能 -->
-    <section id="advanced" class="section">
-        <div class="container">
-            <div class="text-center">
-                <h2 class="section-title">高级功能</h2>
-                <p class="section-subtitle">为深度用户提供灵活的自定义选项，完全掌控您的工作流。</p>
-            </div>
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="accordion" id="advancedAccordion">
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="headingOne">
-                                <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#collapseOne">
-                                    <i class="fas fa-cogs me-2"></i> 自定义提示词 (Prompt)
-                                </button>
-                            </h2>
-                            <div id="collapseOne" class="accordion-collapse collapse show"
-                                data-bs-parent="#advancedAccordion">
-                                <div class="accordion-body">
-                                    您可以直接编辑 <code>TXT_Files/</code> 目录下的提示词文件，来精确控制 AI 的输出风格和格式。
-                                    <ul>
-                                        <li><strong>文献总结提示词.txt</strong>: 控制单篇文献的总结逻辑。</li>
-                                        <li><strong>文献综述撰写提示词.txt</strong>: 控制最终文献综述的结构和语气。</li>
-                                        <li><strong>定性研究论文撰写提示词.txt</strong>: 控制定性研究论文的生成框架。</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="headingTwo">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#collapseTwo">
-                                    <i class="fas fa-broom me-2"></i> 缓存管理
-                                </button>
-                            </h2>
-                            <div id="collapseTwo" class="accordion-collapse collapse"
-                                data-bs-parent="#advancedAccordion">
-                                <div class="accordion-body">
-                                    如果需要强制重新处理所有文献（例如，在更新了提示词后），您可以通过以下方式管理缓存：
-                                    <ul>
-                                        <li><strong>清除缓存文件</strong>: 删除 <code>cache/summaries_cache.json</code> 文件。</li>
-                                        <li><strong>禁用缓存</strong>: 在 <code>config.yaml</code> 中将
-                                            <code>cache.enabled</code> 设置为 <code>false</code>。
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="headingThree">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#collapseThree">
-                                    <i class="fas fa-terminal me-2"></i> 命令行选项
-                                </button>
-                            </h2>
-                            <div id="collapseThree" class="accordion-collapse collapse"
-                                data-bs-parent="#advancedAccordion">
-                                <div class="accordion-body">
-                                    在启动应用时，您可以使用命令行参数进行额外配置：
-                                    <div class="code-block mt-3">
-                                        <pre><code><span class="comment"># 使用 8080 端口启动，并且不自动在浏览器中打开</span>
-<span class="keyword">python</span> app.py --port 8080 --no-browser</code></pre>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- 常见问题 -->
-    <section id="faq" class="section" style="background-color: var(--light-gray);">
-        <div class="container">
-            <div class="text-center">
-                <h2 class="section-title">常见问题 (FAQ)</h2>
-                <p class="section-subtitle">在这里找到常见问题的答案。</p>
-            </div>
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="accordion" id="faqAccordion">
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#faq1">
-                                    Q: 文献总结质量不高怎么办？
-                                </button>
-                            </h2>
-                            <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body">
-                                    A: 尝试调整 <code>TXT_Files/文献总结提示词.txt</code> 的内容，使其更符合您的要求。调整后，删除
-                                    <code>cache/summaries_cache.json</code> 并重新运行程序。您也可以在 <code>config.yaml</code> 中尝试调整
-                                    <code>temperature</code> 参数。
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#faq2">
-                                    Q: PDF 文件无法匹配引用信息？
-                                </button>
-                            </h2>
-                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body">
-                                    A: 请确保您在 <code>TXT_Files/参考文献列表.txt</code> 中提供的引用信息包含了对应 PDF
-                                    文件名的关键部分（例如，作者、年份等），系统依赖这些信息进行匹配。
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#faq3">
-                                    Q: API 调用失败或出现错误？
-                                </button>
-                            </h2>
-                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body">
-                                    A: 首先，请检查 <code>config.yaml</code> 中的 <code>api_key</code>
-                                    是否正确填写。其次，检查您的网络连接是否正常。如果网络不稳定，可以适当增加 <code>config.yaml</code> 中的
-                                    <code>max_retries</code> 次数。
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- 技术栈 -->
-    <section id="tech" class="section">
-        <div class="container text-center">
-            <h2 class="section-title">强大的技术支持</h2>
-            <p class="section-subtitle">我们选用稳定、高效的技术栈，为您的研究保驾护航。</p>
-            <div class="d-flex flex-wrap gap-3 justify-content-center">
-                <div class="tech-badge"><i class="fab fa-python me-2"></i> Python Flask</div>
-                <div class="tech-badge"><i class="fas fa-brain me-2"></i> Google Gemini AI</div>
-                <div class="tech-badge"><i class="fab fa-bootstrap me-2"></i> Bootstrap 5</div>
-                <div class="tech-badge"><i class="fab fa-js-square me-2"></i> JavaScript</div>
-                <div class="tech-badge"><i class="fas fa-file-pdf me-2"></i> PDF 解析</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- 页脚 -->
-    <footer class="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-4 mb-4 mb-lg-0">
-                    <h5><i class="fas fa-robot me-2"></i>Gemini 文献综述助手</h5>
-                    <p class="small">让 AI 助力您的学术研究，开启智能文献综述之旅！🚀</p>
-                </div>
-                <div class="col-lg-2 col-6">
-                    <h5>快速链接</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="#features">核心功能</a></li>
-                        <li><a href="#howto">使用流程</a></li>
-                        <li><a href="#install">安装指南</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-2 col-6">
-                    <h5>更多</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="#advanced">高级功能</a></li>
-                        <li><a href="#faq">常见问题</a></li>
-                        <li><a href="#tech">技术栈</a></li>
-                    </ul>
-                </div>
-            </div>
-            <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
-            <div class="text-center">
-                <p class="mb-0 small">&copy; 2025 Gemini 文献综述助手. All Rights Reserved.</p>
-            </div>
-        </div>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // 动画效果
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('is-visible');
-                }
-            });
-        }, { threshold: 0.1 });
-
-        document.querySelectorAll('.fade-in-up').forEach(el => {
-            observer.observe(el);
-        });
-
-        // 导航栏滚动效果
-        const navbar = document.querySelector('.navbar');
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) {
-                navbar.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-            } else {
-                navbar.style.boxShadow = 'none';
-            }
-        });
-    </script>
+        <footer>
+            <p>Generated by Gemini /// 2025</p>
+        </footer>
+    </div>
 </body>
-
 </html>
