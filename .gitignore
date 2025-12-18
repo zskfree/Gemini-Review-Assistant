@@ -130,3 +130,4 @@ TXT_Files_zsk/
 new_workflow/txts_zsk/
 new_workflow/pdfs_zsk/
 旧版本_弃用/
+.gitignore
