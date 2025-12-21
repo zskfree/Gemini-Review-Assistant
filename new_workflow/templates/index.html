@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScholarFlow - 文献综述助手</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* =========================================
+           GLOBAL VARS & RESET (Modern Grotesque)
+           ========================================= */
+        :root {
+            --bg-color: #050505;
+            --text-main: #eaeaea;
+            --text-muted: #a0a0a0;
+            --acid-green: #ccff00;
+            --acid-purple: #7000ff;
+            --alert-red: #ff2a2a;
+            --border-width: 3px;
+            --solid-shadow: 6px 6px 0px 0px;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Courier New', 'Monaco', monospace;
+            /* 强制等宽或机械感字体 */
+            padding-top: 50px;
+            padding-bottom: 50px;
+            cursor: crosshair;
+            /* 全局十字准星 */
+            overflow-x: hidden;
+        }
+
+        /* 噪点背景层 (位于文字之下) */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.07'/%3E%3C/svg%3E");
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* 去除所有圆角 */
+        * {
+            border-radius: 0 !important;
+        }
+
+        /* =========================================
+           TYPOGRAPHY
+           ========================================= */
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--acid-green);
+            /* 标题纯黑描边增强对比 */
+            text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+        }
+
+        .form-label {
+            font-weight: bold;
+            color: var(--acid-green);
+            background: #000;
+            display: inline-block;
+            padding: 2px 6px;
+            border: 1px solid var(--acid-green);
+            margin-bottom: 8px;
+        }
+
+        /* =========================================
+           CONTAINERS & CARDS
+           ========================================= */
+        .container {
+            max-width: 1200px;
+            background: #111;
+            /* 深色背景承载信息 */
+            padding: 40px;
+            border: var(--border-width) solid var(--text-main);
+            box-shadow: var(--solid-shadow) var(--acid-purple);
+            position: relative;
+        }
+
+        /* 装饰性边角 */
+        .container::after {
+            content: "SCHOLAR_FLOW_VER_2.0";
+            position: absolute;
+            top: -15px;
+            right: -3px;
+            background: var(--acid-purple);
+            color: #fff;
+            font-size: 12px;
+            padding: 2px 8px;
+            font-weight: bold;
+        }
+
+        /* =========================================
+           FORMS
+           ========================================= */
+        .form-control {
+            background-color: #000;
+            border: 2px solid #444;
+            color: var(--text-main);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .form-control:focus {
+            background-color: #000;
+            color: #fff;
+            border-color: var(--acid-green);
+            box-shadow: 4px 4px 0 var(--acid-green);
+        }
+
+        .form-control::placeholder {
+            color: #555;
+            font-style: italic;
+        }
+
+        /* =========================================
+           BUTTONS (Acid Style)
+           ========================================= */
+        .btn {
+            font-weight: 900;
+            text-transform: uppercase;
+            border: 2px solid;
+            padding: 12px 24px;
+            transition: all 0.1s steps(2);
+            /* 硬切换动画 */
+            position: relative;
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        /* 主要按钮 */
+        .btn-primary {
+            background-color: var(--acid-green);
+            border-color: var(--acid-green);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background-color: #fff;
+            border-color: #fff;
+            color: #000;
+            box-shadow: 6px 6px 0 var(--acid-purple);
+            transform: translate(-2px, -2px);
+        }
+
+        /* 设置按钮 */
+        .btn-outline-primary {
+            color: var(--acid-purple);
+            border-color: var(--acid-purple);
+            background: transparent;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--acid-purple);
+            color: #fff;
+            box-shadow: 4px 4px 0 var(--text-main);
+        }
+
+        /* 成功按钮 */
+        .btn-success {
+            background-color: var(--acid-purple);
+            border-color: var(--acid-purple);
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            background-color: #fff;
+            color: var(--acid-purple);
+            box-shadow: 6px 6px 0 var(--acid-green);
+        }
+
+        /* 禁用状态 */
+        .btn:disabled {
+            background: #333;
+            border-color: #333;
+            color: #888;
+            opacity: 1;
+            cursor: not-allowed;
+        }
+
+        /* =========================================
+           LISTS & TABLES
+           ========================================= */
+        .list-group-item {
+            background-color: #000;
+            border: 1px solid #333;
+            color: var(--text-main);
+            margin-bottom: 5px;
+        }
+
+        .table {
+            color: var(--text-main);
+            border-color: #333;
+        }
+
+        .table thead th {
+            background-color: var(--acid-purple);
+            color: #fff;
+            border-bottom: none;
+            text-transform: uppercase;
+        }
+
+        .table td {
+            background-color: #000;
+            /* 改为纯黑背景 */
+            border: 1px solid #444;
+            /* 增强边框对比 */
+            color: #fff;
+            /* 强制使用纯白文字，确保清晰 */
+            vertical-align: middle;
+        }
+
+        /* =========================================
+           ALERTS & LOADERS
+           ========================================= */
+        .alert {
+            border: 2px solid;
+            background: #000;
+            color: var(--text-main);
+            font-weight: bold;
+        }
+
+        .alert-success {
+            border-color: var(--acid-green);
+            box-shadow: 4px 4px 0 var(--acid-green);
+        }
+
+        .alert-danger {
+            border-color: var(--alert-red);
+            box-shadow: 4px 4px 0 var(--alert-red);
+        }
+
+        .spinner-border {
+            border-width: 4px;
+            border-radius: 0 !important;
+            /* 方形旋转 */
+            animation-duration: 0.5s;
+        }
+
+        /* 滚动条定制 */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--acid-green);
+            border: 2px solid #000;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--acid-purple);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-secondary pb-3">
+            <h2 class="mb-0" style="font-size: 2.5rem;">ScholarFlow<span
+                    style="font-size:1rem; color:#fff; -webkit-text-stroke:0;"> // 文献综述助手</span></h2>
+            <a href="/settings" class="btn btn-outline-primary">系统参数配置 [⚙️]</a>
+        </div>
+
+        <form id="workflowForm">
+            <div class="mb-4">
+                <label class="form-label">研究主题</label>
+                <textarea class="form-control" name="research_topic" id="research_topic" rows="3"
+                    placeholder="> 请输入您的研究主题..." required></textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <label class="form-label">参考文献列表</label>
+                    <textarea class="form-control" name="reference_list" id="reference_list" rows="12"
+                        placeholder="> 作者. 标题. 期刊, 年份. (每行一条)"></textarea>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="border p-3" style="border-color: #333 !important; height: 100%;">
+                        <label class="form-label">已存在的 PDF</label>
+                        <ul id="pdfList" class="list-group mb-3" style="max-height: 200px; overflow-y: auto;">
+                            <!-- 动态加载 -->
+                        </ul>
+
+                        <label class="form-label mt-2">上传新文件</label>
+                        <div class="input-group">
+                            <!-- 隐藏原始输入框，添加 onchange 事件 -->
+                            <input class="d-none" type="file" name="pdfs" id="pdfInput" multiple accept=".pdf"
+                                onchange="updateFileStatus(this)">
+
+                            <!-- 自定义按钮 -->
+                            <button class="btn btn-outline-primary" type="button"
+                                onclick="document.getElementById('pdfInput').click()"
+                                style="font-size: 12px; padding: 5px 10px; border-width: 1px;">
+                                选择文件
+                            </button>
+
+                            <!-- 文件名显示区域 -->
+                            <div id="fileStatus" class="form-control font-monospace"
+                                style="font-size: 11px; background: #000; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 2;">
+                                未选择文件
+                            </div>
+
+                            <button class="btn btn-secondary"
+                                style="border: 2px solid #555; background:#000; font-size: 12px;" type="button"
+                                onclick="uploadFiles()">上传</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-3 mt-4">
+                <button type="button" class="btn btn-primary btn-lg" id="mappingBtn" onclick="startMapping()">
+                    <span class="d-inline-block border border-dark px-1 me-2 bg-white text-dark">01</span> 开始文献映射
+                </button>
+                <button type="button" class="btn btn-success btn-lg d-none" id="summaryBtn" onclick="startSummary()">
+                    <span class="d-inline-block border border-white px-1 me-2 bg-dark text-white">02</span> 逐篇生成总结
+                </button>
+            </div>
+
+            <!-- 状态显示区域 -->
+            <div id="statusArea" class="mt-4">
+                <div class="loading p-4 border border-secondary" style="background:#0a0a0a; display: none;">
+                    <div class="d-flex justify-content-between mb-2">
+                        <h5 class="text-white mb-0" id="progressStatus">正在处理...</h5>
+                        <span class="text-white font-monospace" id="progressPercent">0%</span>
+                    </div>
+                    <div class="progress" style="height: 10px; background-color: #222; border-radius: 0 !important;">
+                        <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated"
+                            role="progressbar" style="width: 0%; background-color: var(--acid-green);"></div>
+                    </div>
+                    <p class="font-monospace mt-2 mb-0" style="font-size: 12px; color: #ccc;" id="progressDetail">准备中...
+                    </p>
+                </div>
+                <div id="resultMessage" class="alert d-none mt-3"></div>
+                <div id="downloadArea" class="text-center d-none mt-3 p-4 border border-success"
+                    style="background: #051a05;">
+                    <h4 class="text-success mb-3">任务完成</h4>
+                    <a href="#" id="downloadBtn" class="btn btn-success">下载 CSV 报告 ⬇</a>
+                </div>
+            </div>
+        </form>
+
+        <div id="mappingResultArea" class="mt-5 d-none border-top border-secondary pt-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">文献映射日志 // 结果确认</h5>
+                <span id="mappingStats" class="badge bg-secondary p-2" style="font-size: 0.9em;">等待中...</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th style="width: 30%">PDF 文件名</th>
+                            <th>匹配的参考文献</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mappingTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentConfig = {};
+        let progressInterval;
+
+        // 新增：获取并更新进度
+        async function updateProgress() {
+            try {
+                const response = await fetch('/get-progress');
+                const data = await response.json();
+
+                if (data.total > 0) {
+                    const percent = Math.round((data.current / data.total) * 100);
+                    document.getElementById('progressBar').style.width = percent + '%';
+                    document.getElementById('progressPercent').innerText = percent + '%';
+                    document.getElementById('progressDetail').innerText = `已处理: ${data.current} / 总计: ${data.total} (${data.last_item || '...'})`;
+                }
+            } catch (e) {
+                console.error("获取进度失败", e);
+            }
+        }
+
+        function updateFileStatus(input) {
+            const status = document.getElementById('fileStatus');
+            if (input.files.length > 0) {
+                const names = Array.from(input.files).map(f => f.name).join(', ');
+                status.innerText = names;
+                status.style.color = 'var(--acid-green)'; // 选中后变亮绿色
+            } else {
+                status.innerText = '未选择文件';
+                status.style.color = '#666';
+            }
+        }
+
+        async function uploadFiles() {
+            const fileInput = document.getElementById('pdfInput');
+            if (fileInput.files.length === 0) {
+                alert("请先选择要上传的 PDF 文件");
+                return;
+            }
+
+            const formData = new FormData();
+            for (let i = 0; i < fileInput.files.length; i++) {
+                formData.append('pdfs', fileInput.files[i]);
+            }
+
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = "上传中...";
+
+            try {
+                const response = await fetch('/upload-pdfs', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    renderPdfList(data.existing_pdfs);
+                    fileInput.value = ''; // 清空选择
+                    alert(data.message);
+                } else {
+                    alert("上传失败: " + data.message);
+                }
+            } catch (error) {
+                alert("上传请求出错: " + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+
+        async function loadData() {
+            const response = await fetch('/get-data');
+            const data = await response.json();
+            if (data.status === 'success') {
+                document.getElementById('research_topic').value = data.research_topic;
+                document.getElementById('reference_list').value = data.reference_list;
+                renderPdfList(data.existing_pdfs);
+                // 移除此处对配置表单的填充逻辑
+            }
+        }
+
+        async function saveConfig() {
+            // 更新本地配置对象
+            currentConfig.api.provider = document.getElementById('config_provider').value;
+            currentConfig.proxy.url = document.getElementById('config_proxy').value;
+            currentConfig.api.zhipu_key = document.getElementById('config_zhipu_key').value;
+            currentConfig.api.genai_key = document.getElementById('config_gemini_key').value;
+
+            const response = await fetch('/save-config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentConfig)
+            });
+            const data = await response.json();
+            alert(data.message);
+        }
+
+        function renderPdfList(files) {
+            const list = document.getElementById('pdfList');
+            list.innerHTML = files.length ? '' : '<li class="list-group-item text-muted">暂无文件</li>';
+            files.forEach(file => {
+                // 提取文件名
+                const filename = file.split(/[\\/]/).pop();
+
+                const li = document.createElement('li');
+                // 使用 align-items-start 确保文件名换行时，删除按钮依然对齐在顶部或中间
+                li.className = 'list-group-item d-flex justify-content-between align-items-start';
+                li.innerHTML = `
+                        <span style="font-size: 12px; color: #eaeaea; word-break: break-all; margin-right: 10px; flex: 1;">
+                            ${filename}
+                        </span>
+                        <button type="button" class="btn btn-sm btn-outline-danger" 
+                                style="font-size: 10px; padding: 2px 5px; flex-shrink: 0;" 
+                                onclick="deleteFile('${file}')">删除</button>
+                    `;
+                list.appendChild(li);
+            });
+        }
+
+        async function deleteFile(filePath) {
+            const filename = filePath.split(/[\\/]/).pop();
+            if (!confirm(`确定要删除 ${filename} 吗？`)) return;
+
+            const response = await fetch('/delete-pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: filePath }) // 传给后端的依然是完整路径/标识
+            });
+            const data = await response.json();
+            if (data.status === 'success') {
+                loadData(); // 重新加载列表
+            } else {
+                alert(data.message);
+            }
+        }
+
+        async function startMapping() {
+            const form = document.getElementById('workflowForm');
+            const formData = new FormData(form);
+            const mappingBtn = document.getElementById('mappingBtn');
+            const loading = document.querySelector('.loading');
+            const originalText = mappingBtn.innerHTML;
+
+            mappingBtn.disabled = true;
+            mappingBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 正在映射文献...`;
+            loading.style.display = 'block';
+            document.getElementById('progressStatus').innerText = "正在映射文献...";
+
+            // 启动轮询
+            progressInterval = setInterval(updateProgress, 1000);
+
+
+            try {
+                const response = await fetch('/run-mapping', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                clearInterval(progressInterval);
+                updateProgress(); // 最后更新一次进度
+                loading.style.display = 'none';
+                mappingBtn.disabled = false;
+                mappingBtn.innerHTML = originalText;
+
+                if (data.status === 'success') {
+                    renderMappingTable(data.mapping);
+                    document.getElementById('summaryBtn').classList.remove('d-none');
+                    document.getElementById('mappingResultArea').classList.remove('d-none');
+                    document.getElementById('mappingResultArea').scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    alert("映射失败: " + data.message);
+                }
+            } catch (error) {
+                clearInterval(progressInterval);
+                loading.style.display = 'none';
+                mappingBtn.disabled = false;
+                mappingBtn.innerHTML = originalText;
+                alert("请求出错: " + error.message);
+            }
+        }
+
+        function renderMappingTable(mapping) {
+            const tbody = document.getElementById('mappingTableBody');
+            const statsSpan = document.getElementById('mappingStats');
+            tbody.innerHTML = '';
+
+            let total = 0;
+            let matched = 0;
+
+            const entries = Object.entries(mapping);
+            total = entries.length;
+
+            entries.forEach(([pdf, ref]) => {
+                if (ref) matched++;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="font-monospace" style="color: var(--acid-green);">${pdf}</td>
+                    <td style="color: #eaeaea;">${ref || '<span class="text-danger">⚠️ 未匹配到参考文献</span>'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // 更新统计提示
+            statsSpan.textContent = `共检测到 ${total} 个文件，成功匹配 ${matched} 个，未匹配 ${total - matched} 个`;
+            statsSpan.className = matched === total ? 'badge bg-success' : 'badge bg-warning text-dark';
+        }
+
+        async function startSummary() {
+            const summaryBtn = document.getElementById('summaryBtn');
+            const loading = document.querySelector('.loading');
+            const resultMessage = document.getElementById('resultMessage');
+            const downloadArea = document.getElementById('downloadArea');
+            const originalText = summaryBtn.innerHTML;
+
+            summaryBtn.disabled = true;
+            summaryBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 正在生成总结...`;
+
+            loading.style.display = 'block';
+            document.getElementById('progressStatus').innerText = "正在生成总结...";
+
+            resultMessage.classList.add('d-none');
+            downloadArea.classList.add('d-none');
+
+            // 启动轮询
+            progressInterval = setInterval(updateProgress, 1000);
+
+
+            try {
+                const response = await fetch('/run-summary', {
+                    method: 'POST'
+                });
+                clearInterval(progressInterval);
+                updateProgress();
+                const data = await response.json();
+
+                loading.style.display = 'none';
+                summaryBtn.disabled = false;
+                summaryBtn.innerHTML = originalText;
+
+                if (data.status === 'success') {
+                    resultMessage.textContent = data.message;
+                    resultMessage.className = 'alert alert-success';
+                    resultMessage.classList.remove('d-none');
+                    downloadArea.classList.remove('d-none');
+                    document.getElementById('downloadBtn').href = data.download_url;
+                } else {
+                    resultMessage.textContent = data.message;
+                    resultMessage.className = 'alert alert-danger';
+                    resultMessage.classList.remove('d-none');
+                }
+            } catch (error) {
+                clearInterval(progressInterval);
+                loading.style.display = 'none';
+                summaryBtn.disabled = false;
+                summaryBtn.innerHTML = originalText;
+                alert("总结请求出错: " + error.message);
+            }
+        }
+
+        window.onload = loadData;
+    </script>
+</body>
+
+</html>

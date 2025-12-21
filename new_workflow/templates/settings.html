@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScholarFlow - 系统设置</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* 复用主页面的风格变量 */
+        :root {
+            --bg-color: #050505;
+            --text-main: #eaeaea;
+            --acid-green: #ccff00;
+            --acid-purple: #7000ff;
+            --border-width: 3px;
+            --solid-shadow: 6px 6px 0px 0px;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Courier New', monospace;
+            padding-top: 30px;
+            padding-bottom: 50px;
+            cursor: crosshair;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.07'/%3E%3C/svg%3E");
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        * {
+            border-radius: 0 !important;
+        }
+
+        .container {
+            max-width: 900px;
+            background: #111;
+            padding: 40px;
+            border: var(--border-width) solid var(--text-main);
+            box-shadow: var(--solid-shadow) #444;
+        }
+
+        h2,
+        h4,
+        h5 {
+            font-family: 'Impact', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #fff;
+        }
+
+        /* 区别于主页，设置页使用不同的标题装饰 */
+        .section-title {
+            border-left: 8px solid var(--acid-green);
+            padding-left: 15px;
+            margin-bottom: 25px;
+            margin-top: 40px;
+            background: linear-gradient(90deg, #1a1a1a, transparent);
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+
+        .form-label {
+            color: var(--acid-green);
+            font-weight: bold;
+        }
+
+        .form-text {
+            color: #888;
+        }
+
+        .form-control,
+        .form-select {
+            background-color: #000;
+            border: 2px solid #444;
+            color: #fff;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background-color: #0a0a0a;
+            border-color: var(--acid-purple);
+            box-shadow: 4px 4px 0 var(--acid-purple);
+            color: #fff;
+        }
+
+        .card {
+            background: #000;
+            border: 2px solid #333;
+        }
+
+        /* 手风琴样式重构 */
+        .accordion-item {
+            background-color: transparent;
+            border: none;
+            margin-bottom: 10px;
+        }
+
+        .accordion-button {
+            background-color: #000;
+            color: var(--acid-green);
+            border: 2px solid #333;
+            font-weight: bold;
+            box-shadow: 3px 3px 0 #222;
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: var(--acid-green);
+            color: #000;
+            box-shadow: 3px 3px 0 var(--acid-purple);
+        }
+
+        .accordion-body {
+            background: #0a0a0a;
+            border: 2px solid #333;
+            border-top: none;
+            padding: 20px;
+        }
+
+        .btn {
+            text-transform: uppercase;
+            font-weight: 900;
+            border: 2px solid;
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-primary {
+            background-color: var(--acid-purple);
+            border-color: var(--acid-purple);
+        }
+
+        .btn-primary:hover {
+            background-color: #fff;
+            color: var(--acid-purple);
+            box-shadow: 6px 6px 0 var(--acid-green);
+            transform: translate(-2px, -2px);
+        }
+
+        .btn-outline-secondary {
+            color: #aaa;
+            border-color: #aaa;
+        }
+
+        .btn-outline-secondary:hover {
+            background: #aaa;
+            color: #000;
+        }
+
+        /* 切换开关样式 */
+        .form-check-input {
+            background-color: #000;
+            border: 2px solid #555;
+            cursor: pointer;
+        }
+
+        .form-check-input:checked {
+            background-color: var(--acid-green);
+            border-color: var(--acid-green);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom border-secondary">
+            <h2>⚙️ 系统参数配置</h2>
+            <a href="/" class="btn btn-outline-secondary">← 返回主页</a>
+        </div>
+
+        <form id="configForm">
+            <!-- 代理配置 -->
+            <h4 class="section-title">网络 / 代理配置</h4>
+            <div class="row mb-3">
+                <div class="col-12">
+                    <label class="form-label">代理地址 (PROXY URL)</label>
+                    <input type="text" class="form-control" id="proxy_url" name="proxy.url"
+                        placeholder="http://127.0.0.1:7897">
+                    <div class="form-text">提示: 留空则直连。</div>
+                </div>
+            </div>
+
+            <!-- 模型任务配置 -->
+            <h4 class="section-title">模型任务配置</h4>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card card-body h-100">
+                        <h5 class="text-white border-bottom pb-2 mb-3">任务_01: 文献综述</h5>
+                        <label class="form-label">提供者</label>
+                        <select class="form-select mb-3" id="model_summary_provider"
+                            name="model.literature_summary.provider">
+                            <option value="zhipu">智谱AI (Zhipu)</option>
+                            <option value="gemini">Google Gemini</option>
+                            <option value="openai">OpenAI / 兼容</option>
+                        </select>
+                        <label class="form-label">模型名称</label>
+                        <input type="text" class="form-control mb-3" id="model_summary_name"
+                            name="model.literature_summary.model_name">
+                        <label class="form-label">温度</label>
+                        <input type="number" step="0.1" class="form-control" id="model_summary_temp"
+                            name="model.literature_summary.temperature">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card card-body h-100">
+                        <h5 class="text-white border-bottom pb-2 mb-3">任务_02: 参考文献提取</h5>
+                        <label class="form-label">提供者</label>
+                        <select class="form-select mb-3" id="model_ref_provider"
+                            name="model.reference_extraction.provider">
+                            <option value="zhipu">智谱AI (Zhipu)</option>
+                            <option value="gemini">Google Gemini</option>
+                            <option value="openai">OpenAI / 兼容</option>
+                        </select>
+                        <label class="form-label">模型名称</label>
+                        <input type="text" class="form-control mb-3" id="model_ref_name"
+                            name="model.reference_extraction.model_name">
+                        <label class="form-label">温度</label>
+                        <input type="number" step="0.1" class="form-control" id="model_ref_temp"
+                            name="model.reference_extraction.temperature">
+                    </div>
+                </div>
+            </div>
+
+            <!-- API 密钥配置 -->
+            <h4 class="section-title">API 密钥配置</h4>
+            <div class="mb-4">
+                <label class="form-label">全局默认提供者</label>
+                <select class="form-select" id="api_provider" name="api.provider">
+                    <option value="zhipu">智谱AI</option>
+                    <option value="gemini">Gemini</option>
+                    <option value="openai">OpenAI</option>
+                </select>
+            </div>
+
+            <div class="accordion" id="apiAccordion">
+                <!-- Zhipu -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapseZhipu">智谱AI (Zhipu)</button>
+                    </h2>
+                    <div id="collapseZhipu" class="accordion-collapse collapse show" data-bs-parent="#apiAccordion">
+                        <div class="accordion-body">
+                            <label class="form-label">API 密钥</label>
+                            <input type="password" class="form-control mb-3" id="api_zhipu_key" name="api.zhipu_key">
+                            <div class="form-check form-switch ps-0">
+                                <label class="form-check-label ms-5 text-white" for="api_zhipu_thinking">启用深度思考模式
+                                    (Thinking)</label>
+                                <input class="form-check-input ms-0" type="checkbox" id="api_zhipu_thinking"
+                                    name="api.zhipu_enable_thinking">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Gemini -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapseGemini">Google Gemini</button>
+                    </h2>
+                    <div id="collapseGemini" class="accordion-collapse collapse" data-bs-parent="#apiAccordion">
+                        <div class="accordion-body">
+                            <label class="form-label">API 密钥 (多Key用逗号分隔)</label>
+                            <textarea class="form-control mb-3" id="api_genai_key" name="api.genai_key"
+                                rows="2"></textarea>
+                            <label class="form-label">BASE URL</label>
+                            <input type="text" class="form-control mb-2" id="api_genai_url" name="api.genai_base_url">
+                        </div>
+                    </div>
+                </div>
+                <!-- OpenAI -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapseOpenAI">OpenAI / OpenRouter</button>
+                    </h2>
+                    <div id="collapseOpenAI" class="accordion-collapse collapse" data-bs-parent="#apiAccordion">
+                        <div class="accordion-body">
+                            <label class="form-label">API 密钥</label>
+                            <input type="password" class="form-control mb-3" id="api_openai_key" name="api.openai_key">
+                            <label class="form-label">BASE URL</label>
+                            <input type="text" class="form-control mb-2" id="api_openai_url" name="api.openai_base_url">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 路径配置 -->
+            <h4 class="section-title">文件系统路径</h4>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">PDF 文件夹（pdf格式）</label>
+                    <input type="text" class="form-control" id="path_pdf" name="paths.pdf_folder">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">主题文件（txt格式）</label>
+                    <input type="text" class="form-control" id="path_topic" name="paths.research_topic_file">
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">参考文献文件（txt格式）</label>
+                    <input type="text" class="form-control" id="path_reference" name="paths.reference_file">
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">文献匹配结果文件（json格式）</label>
+                    <input type="text" class="form-control" id="path_reference_match" name="paths.reference_mapping">
+                </div>
+            </div>
+
+            <div class="mt-5 d-grid">
+                <button type="button" class="btn btn-primary btn-lg" onclick="saveFullConfig()">
+                    保存所有配置
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let configData = {};
+
+        async function loadConfig() {
+            const response = await fetch('/get-data');
+            const data = await response.json();
+            if (data.status === 'success') {
+                configData = data.config;
+                fillForm(configData);
+            }
+        }
+
+        function fillForm(cfg) {
+            // 代理
+            document.getElementById('proxy_url').value = cfg.proxy.url;
+            
+            // 模型
+            document.getElementById('model_summary_provider').value = cfg.model.literature_summary.provider;
+            document.getElementById('model_summary_name').value = cfg.model.literature_summary.model_name;
+            document.getElementById('model_summary_temp').value = cfg.model.literature_summary.temperature;
+            
+            document.getElementById('model_ref_provider').value = cfg.model.reference_extraction.provider;
+            document.getElementById('model_ref_name').value = cfg.model.reference_extraction.model_name;
+            document.getElementById('model_ref_temp').value = cfg.model.reference_extraction.temperature;
+
+            // API
+            document.getElementById('api_provider').value = cfg.api.provider;
+            document.getElementById('api_zhipu_key').value = cfg.api.zhipu_key;
+            document.getElementById('api_zhipu_thinking').checked = cfg.api.zhipu_enable_thinking;
+            document.getElementById('api_genai_key').value = cfg.api.genai_key;
+            document.getElementById('api_genai_url').value = cfg.api.genai_base_url;
+            document.getElementById('api_openai_key').value = cfg.api.openai_key;
+            document.getElementById('api_openai_url').value = cfg.api.openai_base_url;
+
+            // 路径
+            document.getElementById('path_pdf').value = cfg.paths.pdf_folder;
+            document.getElementById('path_topic').value = cfg.paths.research_topic_file;
+            document.getElementById('path_reference').value = cfg.paths.reference_file;
+            document.getElementById('path_reference_match').value = cfg.paths.reference_mapping;
+        }
+
+        async function saveFullConfig() {
+            // 更新对象
+            configData.proxy.url = document.getElementById('proxy_url').value;
+            
+            configData.model.literature_summary.provider = document.getElementById('model_summary_provider').value;
+            configData.model.literature_summary.model_name = document.getElementById('model_summary_name').value;
+            configData.model.literature_summary.temperature = parseFloat(document.getElementById('model_summary_temp').value);
+            
+            configData.model.reference_extraction.provider = document.getElementById('model_ref_provider').value;
+            configData.model.reference_extraction.model_name = document.getElementById('model_ref_name').value;
+            configData.model.reference_extraction.temperature = parseFloat(document.getElementById('model_ref_temp').value);
+
+            configData.api.provider = document.getElementById('api_provider').value;
+            configData.api.zhipu_key = document.getElementById('api_zhipu_key').value;
+            configData.api.zhipu_enable_thinking = document.getElementById('api_zhipu_thinking').checked;
+            configData.api.genai_key = document.getElementById('api_genai_key').value;
+            configData.api.genai_base_url = document.getElementById('api_genai_url').value;
+            configData.api.openai_key = document.getElementById('api_openai_key').value;
+            configData.api.openai_base_url = document.getElementById('api_openai_url').value;
+
+            configData.paths.pdf_folder = document.getElementById('path_pdf').value;
+            configData.paths.research_topic_file = document.getElementById('path_topic').value;
+            configData.paths.reference_file = document.getElementById('path_reference').value;
+            configData.paths.reference_mapping = document.getElementById('path_reference_match').value;
+
+            const response = await fetch('/save-config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(configData)
+            });
+            const res = await response.json();
+            alert(res.message);
+        }
+
+        window.onload = loadConfig;
+    </script>
+</body>
+</html>

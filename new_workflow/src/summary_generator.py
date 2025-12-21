@@ -103,7 +103,8 @@ def save_summary_results(summary_results: List[Dict], output_file_path: str,
 
 def batch_process_pdfs(pdf_files: List[str], prompt_text: str, 
                       reference_mapping: Dict[str, str],
-                      output_file_path: str) -> List[Dict]:
+                      output_file_path: str,
+                      progress_callback=None) -> List[Dict]: # 添加 progress_callback 参数
     """
     批量处理PDF文件生成摘要
     
@@ -127,10 +128,17 @@ def batch_process_pdfs(pdf_files: List[str], prompt_text: str,
     
     print(f"待处理的PDF文件数量: {len(matched_files)} (总文件数: {len(pdf_files)}, 已处理: {len(processed_files)})")
     
+    total_to_process = len(matched_files)
+    if progress_callback:
+        progress_callback(0, total_to_process, "准备开始...")
+
     summary_results = []
-    
-    # 使用tqdm显示进度条
     for i, pdf_file_path in enumerate(tqdm(matched_files, desc="处理PDF文件", unit="个")):
+        file_name = os.path.basename(pdf_file_path)
+        # 在处理每个文件前调用回调
+        if progress_callback:
+            progress_callback(i, total_to_process, file_name)
+        
         result = process_single_pdf(pdf_file_path, prompt_text, reference_mapping)
         if result:
             result["file_index"] = len(processed_files) + i + 1  # 基于总数的索引
@@ -153,4 +161,6 @@ def batch_process_pdfs(pdf_files: List[str], prompt_text: str,
             except Exception as e:
                 print(f"保存单个结果失败 ({pdf_file_path}): {e}")
     
+    if progress_callback:
+        progress_callback(total_to_process, total_to_process, "全部处理完成")
     return summary_results
