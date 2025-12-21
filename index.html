@@ -235,55 +235,55 @@
 <body>
     <div class="container">
         <header>
-            <h1>Gemini Review Assistant</h1>
-            <p class="tagline">一个基于 AI 的文献综述自动化工作流</p>
+            <h1>ScholarFlow</h1>
+            <p class="tagline">一个基于 AI 的文献综述自动化工具</p>
         </header>
 
         <main>
             <section class="about">
                 <h2>// 项目简介</h2>
                 <p>
-                    本工具旨在利用大语言模型（LLM）的能力，自动化处理学术文献的综述流程。通过读取 PDF 文件，提取核心信息，生成摘要，并匹配参考文献，极大地提升了研究人员的工作效率。
+                    ScholarFlow 旨在利用大语言模型（LLM）的能力，自动化处理学术文献的综述流程。它能够智能解析 PDF（包括扫描件）、提取核心研究要素、生成结构化摘要，并自动匹配参考文献，显著提升科研效率。
                 </p>
             </section>
 
             <section class="workflow">
-                <h2>// 核心工作流 (new_workflow)</h2>
-                <p>项目当前的核心逻辑位于 <code>new_workflow</code> 目录，主要包含以下模块：</p>
+                <h2>// 核心模块 (new_workflow)</h2>
+                <p>项目采用模块化设计，支持多种 LLM 后端与处理流程：</p>
                 <ul>
-                    <li><strong>workflow.py</strong>: 整个工作流的入口和协调器。</li>
-                    <li><strong>config_loader.py</strong>: 加载项目配置。</li>
-                    <li><strong>pdf_processor.py</strong>: 核心的 PDF 处理与信息提取模块。</li>
-                    <li><strong>summary_generator.py</strong>: 调用 LLM 生成文本摘要。</li>
-                    <li><strong>reference_matcher.py</strong>: 匹配和验证参考文献。</li>
-                    <li><strong>results_exporter.py</strong>: 将最终结果导出为报告。</li>
+                    <li><strong>app.py</strong>: 基于 Flask 的 Web 交互界面，提供可视化进度与配置管理。</li>
+                    <li><strong>workflow.py</strong>: 命令行工作流入口，适合批量自动化处理。</li>
+                    <li><strong>pdf_to_markdown.py</strong>: 集成 MarkItDown 与 LLM 视觉能力，支持 OCR 识别。</li>
+                    <li><strong>llm_client.py</strong>: 统一封装 Gemini, GLM-4, OpenAI 等多模型调用。</li>
+                    <li><strong>summary_generator.py</strong>: 核心摘要生成逻辑，支持自定义 Prompt。</li>
+                    <li><strong>reference_matcher.py</strong>: 智能匹配 PDF 内容与参考文献列表。</li>
                 </ul>
             </section>
 
             <section class="usage">
                 <h2>// 如何运行</h2>
-                <p>要启动本项目，请遵循以下步骤：</p>
+                <p>请确保已安装 Python 3.12+，并按照以下步骤操作：</p>
                 <pre><code># 1. 安装依赖
 pip install -r requirements.txt
 
 # 2. 配置环境
-#    - 将 config example.yaml 复制为 config.yaml
-#    - 在 config.yaml 中填入您的 API 密钥等信息
-cp new_workflow/config\ example.yaml new_workflow/config.yaml
+#    - 复制模板：cp new_workflow/config\ example.yaml new_workflow/config.yaml
+#    - 在 config.yaml 中填入您的 API Key (Gemini/Zhipu/OpenAI)
 
-# 3. 准备输入文件
-#    - 将需要处理的 PDF 文件放入 new_workflow/pdfs 目录
-#    - 在 new_workflow/txts/研究主题.txt 中定义您的研究主题
-#    - 在 new_workflow/txts/参考文献列表.txt 中提供参考文献
+# 3. 准备输入
+#    - PDF 文件放入 new_workflow/pdfs/
+#    - 编辑研究主题与参考文献列表 (.txt)
 
-# 4. 运行工作流
-python new_workflow/workflow.py</code></pre>
+# 4. 启动 (推荐使用 Web 界面)
+python new_workflow/app.py
+# 访问 http://127.0.0.1:5000</code></pre>
             </section>
         </main>
 
         <footer>
-            <p>ZSKKSZ /// 2025</p>
+            <p>ScholarFlow /// ZSKKSZ /// 2025</p>
         </footer>
     </div>
 </body>
+
 </html>
