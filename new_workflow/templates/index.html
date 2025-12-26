@@ -620,7 +620,15 @@
                 summaryBtn.innerHTML = originalText;
 
                 if (data.status === 'success') {
-                    resultMessage.textContent = data.message;
+                    let message = data.message;
+
+                    // 如果有统计信息，添加到消息中
+                    if (data.stats) {
+                        const stats = data.stats;
+                        message += `<br><small class="text-muted">（匹配文献: ${stats.total_matched} 篇，成功: ${stats.success_count} 篇，待处理: ${stats.pending_count} 篇）</small>`;
+                    }
+
+                    resultMessage.innerHTML = message;
                     resultMessage.className = 'alert alert-success';
                     resultMessage.classList.remove('d-none');
                     downloadArea.classList.remove('d-none');

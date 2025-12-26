@@ -9,27 +9,30 @@ from .config_loader import get_config
 
 def load_existing_results(output_file_path: str) -> Tuple[Set[str], List[Dict]]:
     """
-    加载已有的JSON结果文件，返回已处理的文件名集合和完整结果列表
+    加载已有的JSON结果文件，返回已处理成功的文献文件名集合和有效结果列表
     
     Args:
         output_file_path: 输出JSON文件路径
         
     Returns:
-        (已处理的文件名集合, 已有的完整结果列表)
+        (已成功处理的文件名集合, 已有的有效结果列表)
     """
     processed_files = set()
-    existing_results = []
+    valid_results = []
     
     if os.path.exists(output_file_path):
         try:
             with open(output_file_path, "r", encoding="utf-8") as json_file:
                 existing_results = json.load(json_file)
                 for entry in existing_results:
-                    processed_files.add(entry.get("file_name"))
+                    # 只有当没有错误信息且存在摘要内容时，才视为处理成功
+                    if "error" not in entry and entry.get("summary"):
+                        processed_files.add(entry.get("file_name"))
+                        valid_results.append(entry)
         except Exception as e:
             print(f"加载已有结果文件失败: {e}")
     
-    return processed_files, existing_results
+    return processed_files, valid_results
 
 def process_single_pdf(pdf_file_path: str, prompt_text: str, 
                       reference_mapping: Dict[str, str]) -> Optional[Dict]:
@@ -72,29 +75,18 @@ def process_single_pdf(pdf_file_path: str, prompt_text: str,
 def save_summary_results(summary_results: List[Dict], output_file_path: str, 
                         merge_with_existing: bool = True):
     """
-    保存摘要结果到JSON文件，支持与已有结果合并
-    
-    Args:
-        summary_results: 新的摘要结果列表
-        output_file_path: 输出文件路径
-        merge_with_existing: 是否与已有结果合并（默认True）
+    保存摘要结果到JSON文件，支持与已有结果合并（仅保存无错误的结果）
     """
     try:
-        final_results = summary_results
+        # 过滤掉包含错误的结果
+        valid_new_results = [r for r in summary_results if "error" not in r]
+        final_results = valid_new_results
         
-        # 如果需要合并，先加载已有结果
         if merge_with_existing and os.path.exists(output_file_path):
-            try:
-                with open(output_file_path, "r", encoding="utf-8") as json_file:
-                    existing_results = json.load(json_file)
-                
-                # 合并：已有结果 + 新结果
-                final_results = existing_results + summary_results
-                print(f"合并结果：已有 {len(existing_results)} 条，新增 {len(summary_results)} 条，总计 {len(final_results)} 条")
-            except Exception as e:
-                print(f"加载已有结果失败，将仅保存新结果: {e}")
+            _, existing_valid_results = load_existing_results(output_file_path)
+            final_results = existing_valid_results + valid_new_results
+            print(f"合并结果：已有有效记录 {len(existing_valid_results)} 条，新增有效记录 {len(valid_new_results)} 条")
         
-        # 保存合并后的结果
         with open(output_file_path, "w", encoding="utf-8") as json_file:
             json.dump(final_results, json_file, ensure_ascii=False, indent=4)
         print(f"摘要结果已保存到 {output_file_path}")
@@ -104,63 +96,51 @@ def save_summary_results(summary_results: List[Dict], output_file_path: str,
 def batch_process_pdfs(pdf_files: List[str], prompt_text: str, 
                       reference_mapping: Dict[str, str],
                       output_file_path: str,
-                      progress_callback=None) -> List[Dict]: # 添加 progress_callback 参数
+                      progress_callback=None) -> List[Dict]:
     """
-    批量处理PDF文件生成摘要
-    
-    Args:
-        pdf_files: PDF文件路径列表
-        prompt_text: 提示词文本
-        reference_mapping: 参考文献映射
-        output_file_path: 输出文件路径
-        
-    Returns:
-        新生成的摘要结果列表（不包含已有结果）
+    批量处理PDF文件生成摘要，确保仅保存成功的结果以便断点续传
     """
     # 筛选有对应参考文献的文件
     matched_files = [f for f in pdf_files 
                     if reference_mapping.get(os.path.basename(f)) is not None]
     
-    # 排除已处理的文件
-    processed_files, existing_results = load_existing_results(output_file_path)
+    # 排除已成功处理的文件
+    processed_files, valid_results = load_existing_results(output_file_path)
     matched_files = [f for f in matched_files 
                     if os.path.basename(f) not in processed_files]
     
-    print(f"待处理的PDF文件数量: {len(matched_files)} (总文件数: {len(pdf_files)}, 已处理: {len(processed_files)})")
+    print(f"待处理的PDF文件数量: {len(matched_files)} (总文件数: {len(pdf_files)}, 已成功: {len(processed_files)})")
     
     total_to_process = len(matched_files)
     if progress_callback:
         progress_callback(0, total_to_process, "准备开始...")
 
-    summary_results = []
+    new_summary_results = []
+    current_all_valid = valid_results.copy()
+
     for i, pdf_file_path in enumerate(tqdm(matched_files, desc="处理PDF文件", unit="个")):
         file_name = os.path.basename(pdf_file_path)
-        # 在处理每个文件前调用回调
         if progress_callback:
             progress_callback(i, total_to_process, file_name)
         
         result = process_single_pdf(pdf_file_path, prompt_text, reference_mapping)
-        if result:
-            result["file_index"] = len(processed_files) + i + 1  # 基于总数的索引
-            summary_results.append(result)
+        
+        # 核心优化：只有成功生成摘要且无错误时才保存
+        if result and "error" not in result:
+            result["file_index"] = len(current_all_valid) + 1
+            new_summary_results.append(result)
+            current_all_valid.append(result)
             
-            # 边处理边保存
+            # 边处理边保存有效结果，确保程序中断后已成功的不会丢失
             try:
-                # 直接将当前结果追加到文件中
-                if os.path.exists(output_file_path):
-                    with open(output_file_path, "r", encoding="utf-8") as json_file:
-                        file_data = json.load(json_file)
-                else:
-                    file_data = existing_results
-                
-                file_data.append(result)
-                
                 with open(output_file_path, "w", encoding="utf-8") as json_file:
-                    json.dump(file_data, json_file, ensure_ascii=False, indent=4)
-                    
+                    json.dump(current_all_valid, json_file, ensure_ascii=False, indent=4)
             except Exception as e:
-                print(f"保存单个结果失败 ({pdf_file_path}): {e}")
+                print(f"实时保存结果失败 ({file_name}): {e}")
+        else:
+            error_msg = result.get("error") if result else "未知错误"
+            print(f"\n[跳过] 文件 {file_name} 处理失败: {error_msg}")
     
     if progress_callback:
         progress_callback(total_to_process, total_to_process, "全部处理完成")
-    return summary_results
+    return new_summary_results

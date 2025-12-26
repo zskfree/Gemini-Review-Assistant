@@ -164,13 +164,16 @@ def run_mapping_api():
 def run_summary_api():
     try:
         # 执行总结步骤，传入进度回调
-        success, message = run_summary_step(progress_callback=update_progress_state)
+        success, message, stats = run_summary_step(progress_callback=update_progress_state)
         if success:
-            return jsonify({
+            response_data = {
                 "status": "success",
                 "message": message,
                 "download_url": "/download"
-            })
+            }
+            if stats:
+                response_data["stats"] = stats
+            return jsonify(response_data)
         else:
             return jsonify({"status": "error", "message": message})
     except Exception as e:
@@ -228,4 +231,5 @@ def download_result():
     return "文件不存在", 404
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=False, port=18690)
+    
