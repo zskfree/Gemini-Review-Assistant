@@ -2,6 +2,7 @@
 import yaml
 import os
 from typing import Dict, Any, List
+from .logger import logger
 
 def load_config(config_path: str = None) -> Dict[str, Any]:
     """
@@ -36,13 +37,13 @@ def load_config(config_path: str = None) -> Dict[str, Any]:
             config = yaml.safe_load(f)
         return config
     except FileNotFoundError:
-        print(f"错误: 配置文件 '{config_path}' 未找到。")
+        logger.error(f"错误: 配置文件 '{config_path}' 未找到。")
         raise
     except yaml.YAMLError as e:
-        print(f"错误: 解析配置文件 '{config_path}' 失败: {e}")
+        logger.error(f"错误: 解析配置文件 '{config_path}' 失败: {e}")
         raise
     except Exception as e:
-        print(f"加载配置时发生未知错误: {e}")
+        logger.error(f"加载配置时发生未知错误: {e}")
         raise
 
 def load_text_file(file_path: str) -> str:
@@ -51,10 +52,10 @@ def load_text_file(file_path: str) -> str:
         with open(file_path, 'r', encoding='utf-8') as f:
             return f.read().strip()
     except FileNotFoundError:
-        print(f"错误: 文本文件 '{file_path}' 未找到。")
+        logger.error(f"错误: 文本文件 '{file_path}' 未找到。")
         return ""
     except Exception as e:
-        print(f"读取文件 '{file_path}' 时出错: {e}")
+        logger.error(f"读取文件 '{file_path}' 时出错: {e}")
         return ""
 
 def get_config(key: str, default: Any = None) -> Any:
@@ -69,7 +70,7 @@ def get_config(key: str, default: Any = None) -> Any:
     except (KeyError, TypeError):
         return default
     except Exception as e:
-        print(f"获取配置项 '{key}' 失败: {e}")
+        logger.error(f"获取配置项 '{key}' 失败: {e}")
         return default
 
 if __name__ == "__main__":

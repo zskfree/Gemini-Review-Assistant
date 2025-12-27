@@ -5,6 +5,8 @@ import os
 from typing import Dict, List
 from .llm_client import LLMClient
 from .config_loader import get_config
+from .logger import logger
+from .utils import extract_json_from_text
 
 def align_pdfs_with_references(pdf_files: List[str], references_text: str) -> Dict[str, str]:
     """
@@ -48,15 +50,18 @@ def align_pdfs_with_references(pdf_files: List[str], references_text: str) -> Di
         ...
     }}
     """    
-    print("正在调用大模型进行文献对齐...")
+    logger.info("正在调用大模型进行文献对齐...")
     try:
         response = llm.generate(prompt=prompt)
-        # 清理可能存在的Markdown标记
-        cleaned_response = response.replace("```json", "").replace("```", "").strip()
-        mapping = json.loads(cleaned_response)
+        mapping = extract_json_from_text(response)
+        
+        if mapping is None:
+            logger.error(f"无法解析 LLM 返回的 JSON: {response[:100]}...")
+            return {}
+            
         return mapping
     except Exception as e:
-        print(f"对齐参考文献时发生错误: {e}")
+        logger.error(f"对齐参考文献时发生错误: {e}")
         return {}
 
 def validate_reference_mapping(mapping: Dict[str, str], references_text: str) -> Dict[str, str]:
@@ -117,13 +122,13 @@ def load_or_create_mapping(reference_mapping_path: str, pdf_files: List[str],
     if os.path.exists(reference_mapping_path):
         with open(reference_mapping_path, "r", encoding="utf-8") as f:
             if os.path.getsize(reference_mapping_path) == 0:
-                print("参考文献映射文件为空，重新创建映射")
+                logger.warning("参考文献映射文件为空，重新创建映射")
                 return {}
             return json.load(f)
     
     # 否则创建新的映射
     if not os.path.exists(reference_file_path):
-        print(f"未找到参考文献文件: {reference_file_path}")
+        logger.error(f"未找到参考文献文件: {reference_file_path}")
         return {}
     
     try:
@@ -131,7 +136,7 @@ def load_or_create_mapping(reference_mapping_path: str, pdf_files: List[str],
             references_text = f.read()
         
         if not references_text.strip():
-            print("参考文献文件为空")
+            logger.warning("参考文献文件为空")
             return {}
         
         # 进行对齐并验证
@@ -144,10 +149,10 @@ def load_or_create_mapping(reference_mapping_path: str, pdf_files: List[str],
         
         matched_count = sum(1 for ref in reference_mapping.values() if ref is not None)
         total_count = len(reference_mapping)
-        print(f"匹配结果: {matched_count} / {total_count} 个文件找到了对应的参考文献。")
+        logger.info(f"匹配结果: {matched_count} / {total_count} 个文件找到了对应的参考文献。")
         
         return reference_mapping
     except Exception as e:
-        print(f"创建参考文献映射失败: {e}")
+        logger.error(f"创建参考文献映射失败: {e}")
         return {}
     

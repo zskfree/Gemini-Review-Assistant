@@ -11,6 +11,7 @@ from src.reference_matcher import load_or_create_mapping
 from src.summary_generator import batch_process_pdfs, save_summary_results
 from src.prompts import get_summary_prompt
 from src.results_exporter import export_from_json
+from src.logger import logger
 
 
 def get_mapping_step():
@@ -48,7 +49,7 @@ def run_summary_step(reference_mapping=None, progress_callback=None):
                 with open(reference_mapping_path, "r", encoding="utf-8") as f:
                     reference_mapping = json.load(f)
             except Exception as e:
-                print(f"加载映射文件失败: {e}")
+                logger.error(f"加载映射文件失败: {e}")
         
         # 如果还是没有，则尝试重新生成（兜底逻辑）
         if not reference_mapping:
@@ -104,12 +105,16 @@ def run_workflow():
     """保留原有的完整工作流供命令行使用"""
     mapping, err = get_mapping_step()
     if err:
-        print(err)
+        logger.error(err)
         return
     success, msg, stats = run_summary_step(mapping)
-    print(msg)
+    if success:
+        logger.info(msg)
+    else:
+        logger.warning(msg)
+
     if stats:
-        print(f"统计信息: 共{stats['total_matched']}篇，成功{stats['success_count']}篇，待处理{stats['pending_count']}篇")
+        logger.info(f"统计信息: 共{stats['total_matched']}篇，成功{stats['success_count']}篇，待处理{stats['pending_count']}篇")
 
 if __name__ == "__main__":
     run_workflow()

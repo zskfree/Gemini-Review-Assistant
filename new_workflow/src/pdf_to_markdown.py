@@ -6,6 +6,7 @@ PDF转Markdown模块
 import os
 from typing import Optional, Tuple
 from .llm_client import LLMClient
+from .logger import logger
 
 
 class PDFToMarkdownConverter:
@@ -33,8 +34,7 @@ class PDFToMarkdownConverter:
             self.markitdown = MarkItDown()
             self.markitdown_available = True
         except ImportError:
-            print("[警告] markitdown 未安装，将仅使用LLM处理")
-            print("提示: pip install markitdown[pdf]")
+            logger.warning("markitdown 未安装，将仅使用LLM处理。提示: pip install markitdown[pdf]")
             self.markitdown = None
         
         self.llm_client = llm_client or LLMClient(provider="gemini", model="gemini-flash-lite-latest")
@@ -55,58 +55,100 @@ class PDFToMarkdownConverter:
 
 请开始提取："""
     
-    def convert(self, pdf_path: str, force_llm: bool = False) -> Tuple[str, str]:
+    def convert(self, pdf_path: str, force_llm: bool = False, force_refresh: bool = False) -> Tuple[str, str]:
         """
         将PDF转换为Markdown格式
         
         Args:
             pdf_path: PDF文件路径
             force_llm: 是否强制使用LLM处理（跳过markitdown）
+            force_refresh: 是否强制刷新缓存（忽略已有缓存）
             
         Returns:
             Tuple[str, str]: (转换后的Markdown文本, 使用的方法)
-                            方法可能是 "markitdown" 或 "llm_vision"
+                            方法可能是 "markitdown" 或 "llm_vision" 或 "cache"
         """
         if not os.path.exists(pdf_path):
             raise FileNotFoundError(f"PDF文件不存在: {pdf_path}")
         
         if not pdf_path.lower().endswith('.pdf'):
             raise ValueError(f"文件不是PDF格式: {pdf_path}")
+            
+        # 1. 检查缓存
+        from .config_loader import get_config
+        cache_dir = get_config("paths.markdown_cache", "new_workflow/cache/markdowns")
+        # 简单的缓存策略：md5(filepath) or basename.md. 这里简单使用 basename
+        # 更好的做法是 hash 文件内容，但为了性能暂时只用文件名
+        base_name = os.path.splitext(os.path.basename(pdf_path))[0]
+        cache_path = os.path.join(cache_dir, f"{base_name}.md")
+        
+        if not force_refresh and os.path.exists(cache_path):
+            try:
+                # 检查缓存是否比PDF新
+                if os.path.getmtime(cache_path) > os.path.getmtime(pdf_path):
+                    logger.info(f"[Cache] 命中缓存: {os.path.basename(cache_path)}")
+                    with open(cache_path, 'r', encoding='utf-8') as f:
+                        return f.read(), "cache"
+            except Exception as e:
+                logger.warning(f"读取缓存失败: {e}, 将重新转换")
+        
+        # 2. 执行转换
+        markdown_text = ""
+        method = ""
         
         # 如果强制使用LLM或markitdown不可用，直接用LLM处理
         if force_llm or not self.markitdown_available:
             if force_llm:
-                print(f"[强制模式] 使用LLM处理: {os.path.basename(pdf_path)}")
+                logger.info(f"[强制模式] 使用LLM处理: {os.path.basename(pdf_path)}")
             else:
-                print(f"[自动模式] markitdown不可用，使用LLM处理: {os.path.basename(pdf_path)}")
-            return self._convert_with_llm(pdf_path), "llm_vision"
-        
-        # 先尝试使用 markitdown
-        try:
-            print(f"[尝试1] 使用markitdown处理: {os.path.basename(pdf_path)}")
-            result = self.markitdown.convert(pdf_path)
-            markdown_text = result.text_content
+                logger.info(f"[自动模式] markitdown不可用，使用LLM处理: {os.path.basename(pdf_path)}")
+            markdown_text = self._convert_with_llm(pdf_path)
+            method = "llm_vision"
             
-            # 检查转换结果是否有效（不是空或几乎为空）
-            if self._is_valid_conversion(markdown_text):
-                print(f"[成功] markitdown转换成功")
-                return markdown_text, "markitdown"
-            else:
-                print(f"[警告] markitdown转换结果无效，可能是扫描件")
+        else:
+            # 先尝试使用 markitdown
+            try:
+                logger.debug(f"[尝试1] 使用markitdown处理: {os.path.basename(pdf_path)}")
+                result = self.markitdown.convert(pdf_path)
+                text = result.text_content
                 
-        except Exception as e:
-            error_str = str(e)
-            # 检查是否是依赖缺失错误
-            if "MissingDependencyException" in error_str or "dependencies needed" in error_str:
-                print(f"[警告] markitdown缺少PDF依赖，请运行: pip install markitdown[pdf]")
-                self.markitdown_available = False  # 标记为不可用
-            else:
-                print(f"[警告] markitdown处理失败: {e}")
-        
-        # 回退到LLM处理（适用于扫描件）
-        print(f"[尝试2] 使用LLM视觉能力处理")
-        return self._convert_with_llm(pdf_path), "llm_vision"
-    
+                # 检查转换结果是否有效
+                if self._is_valid_conversion(text):
+                    logger.info(f"[成功] markitdown转换成功")
+                    markdown_text = text
+                    method = "markitdown"
+                else:
+                    logger.warning(f"[警告] markitdown转换结果无效，可能是扫描件")
+                    # 无效则回退
+                    logger.info(f"[尝试2] 使用LLM视觉能力处理")
+                    markdown_text = self._convert_with_llm(pdf_path)
+                    method = "llm_vision"
+                    
+            except Exception as e:
+                error_str = str(e)
+                if "MissingDependencyException" in error_str or "dependencies needed" in error_str:
+                    logger.warning(f"markitdown缺少PDF依赖，请运行: pip install markitdown[pdf]")
+                    self.markitdown_available = False
+                else:
+                    logger.warning(f"markitdown处理失败: {e}")
+                
+                # 失败则回退
+                logger.info(f"[尝试2] 使用LLM视觉能力处理")
+                markdown_text = self._convert_with_llm(pdf_path)
+                method = "llm_vision"
+
+        # 3. 写入缓存
+        if markdown_text:
+            try:
+                os.makedirs(cache_dir, exist_ok=True)
+                with open(cache_path, 'w', encoding='utf-8') as f:
+                    f.write(markdown_text)
+                logger.debug(f"[Cache] 已写入缓存: {cache_path}")
+            except Exception as e:
+                logger.warning(f"写入缓存失败: {e}")
+                
+        return markdown_text, method
+
     def _is_valid_conversion(self, text: str, min_length: int = 100) -> bool:
         """
         检查转换结果是否有效
@@ -152,12 +194,12 @@ class PDFToMarkdownConverter:
             
         except Exception as e:
             error_msg = f"LLM处理失败: {e}"
-            print(f"[错误] {error_msg}")
+            logger.error(f"{error_msg}")
             raise Exception(error_msg)
     
     def convert_batch(self, pdf_paths: list, force_llm: bool = False) -> dict:
         """
-        批量转换多个PDF文件
+        批量转换多个PDF文件 (并发版)
         
         Args:
             pdf_paths: PDF文件路径列表
@@ -168,19 +210,40 @@ class PDFToMarkdownConverter:
         """
         results = {}
         
-        for i, pdf_path in enumerate(pdf_paths, 1):
-            print(f"\n{'='*60}")
-            print(f"处理第 {i}/{len(pdf_paths)} 个文件")
-            print(f"{'='*60}")
-            
+        # 1. 引入必要的并发工具
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        from .config_loader import get_config
+        import time
+        
+        # 2. 获取并发数配置
+        max_workers = get_config("concurrency.max_workers", 3)
+        logger.info(f"同时处理PDF，最大线程数: {max_workers}")
+        
+        # 3. 定义单个任务函数 (Wrapper)
+        def _process_one(path, idx, total):
+            start_time = time.time()
+            logger.info(f"开始处理第 {idx}/{total} 个文件: {os.path.basename(path)}")
             try:
-                markdown_text, method = self.convert(pdf_path, force_llm=force_llm)
-                results[pdf_path] = (markdown_text, method, True)
-                print(f"[✓] 转换成功")
-                
+                # 传入 force_refresh=False (默认)
+                md_text, method = self.convert(path, force_llm=force_llm)
+                elapsed = time.time() - start_time
+                logger.info(f"[✓] {os.path.basename(path)} 转换成功 (耗时: {elapsed:.2f}s)")
+                return path, md_text, method, True
             except Exception as e:
-                results[pdf_path] = (str(e), None, False)
-                print(f"[✗] 转换失败: {e}")
+                elapsed = time.time() - start_time
+                logger.error(f"[✗] {os.path.basename(path)} 转换失败: {e} (耗时: {elapsed:.2f}s)")
+                return path, str(e), None, False
+
+        # 4. 执行并发任务
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_to_path = {
+                executor.submit(_process_one, pdf_path, i, len(pdf_paths)): pdf_path 
+                for i, pdf_path in enumerate(pdf_paths, 1)
+            }
+            
+            for future in as_completed(future_to_path):
+                path, content, method, success = future.result()
+                results[path] = (content, method, success)
         
         return results
     
@@ -200,7 +263,7 @@ class PDFToMarkdownConverter:
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(markdown_text)
         
-        print(f"[保存] Markdown已保存到: {output_path}")
+        logger.info(f"[保存] Markdown已保存到: {output_path}")
 
 
 # 便捷函数
@@ -250,10 +313,10 @@ def convert_pdfs_in_folder(pdf_folder: str,
     pdf_files = get_pdf_files(pdf_folder)
     
     if not pdf_files:
-        print(f"未找到PDF文件: {pdf_folder}")
+        logger.warning(f"未找到PDF文件: {pdf_folder}")
         return {}
     
-    print(f"找到 {len(pdf_files)} 个PDF文件")
+    logger.info(f"找到 {len(pdf_files)} 个PDF文件")
     
     converter = PDFToMarkdownConverter(llm_client=llm_client)
     results = converter.convert_batch(pdf_files, force_llm=force_llm)
@@ -273,13 +336,7 @@ def convert_pdfs_in_folder(pdf_folder: str,
             success_count += 1
     
     # 打印统计
-    print(f"\n{'='*60}")
-    print(f"转换完成")
-    print(f"{'='*60}")
-    print(f"总计: {len(pdf_files)} 个文件")
-    print(f"成功: {success_count} 个")
-    print(f"失败: {len(pdf_files) - success_count} 个")
-    print(f"输出目录: {output_folder}")
+    logger.info(f"转换完成. 成功: {success_count}/{len(pdf_files)}, 失败: {len(pdf_files) - success_count}, 输出: {output_folder}")
     
     return results
 
@@ -294,9 +351,9 @@ if __name__ == "__main__":
     
     if os.path.exists(test_pdf):
         try:
-            # 创建转换器（使用Gemini，因为它对PDF支持最好）
-            llm = LLMClient(provider="gemini", model="gemini-flash-lite-latest")
-            converter = PDFToMarkdownConverter(llm_client=llm)
+            # 创建转换器
+            # llm = LLMClient(provider="gemini", model="gemini-flash-lite-latest")
+            converter = PDFToMarkdownConverter() # Use default
             
             # 转换
             markdown_text, method = converter.convert(test_pdf)

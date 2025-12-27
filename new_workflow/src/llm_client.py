@@ -368,7 +368,7 @@ if __name__ == "__main__":
     #         prompt="详细描述这张图片的内容，中文简短回复", 
     #         file_path=image_path
     #     )
-    #     print(f"\n单图片响应:\n{response}\n")
+    #     logger.info(f"\n单图片响应:\n{response}\n")
     
     # 测试2: 多个本地图片
     # image_paths = [
@@ -382,13 +382,13 @@ if __name__ == "__main__":
     #         prompt="比较这些图片的异同，中文简短回复", 
     #         file_path=existing_paths
     #     )
-    #     print(f"\n多图片响应:\n{response}\n")
+    #     logger.info(f"\n多图片响应:\n{response}\n")
 
     # # 测试3: 纯文本
     # response = llm.generate(
     #     prompt="请简要介绍一下智谱AI的GLM-4.6v-flash模型有哪些特点？中文简短回复"
     # )
-    # print(f"\n纯文本响应:\n{response}\n")
+    # logger.info(f"\n纯文本响应:\n{response}\n")
 
     # 测试4: 多个本地文件（图片+PDF）
     mixed_files = ["e:/图片/Saved Pictures/R-C - 副本.jpg", "new_workflow/pdfs/巴菲特的阿尔法.pdf"]
@@ -398,7 +398,7 @@ if __name__ == "__main__":
             prompt="pdf文件是关于什么的，我提供的图片跟文件有关吗，中文简短回复",
             file_path=existing_mixed_files
         )
-        print(f"\n多文件响应:\n{response}\n")
+        logger.info(f"\n多文件响应:\n{response}\n")
 
     # 测试5: 本地PDF文件
     # pdf_file = "new_workflow/pdfs/我国股票市场知情交易的形成及策略分析.pdf"
@@ -407,4 +407,4 @@ if __name__ == "__main__":
     #         prompt="请简要总结这个PDF文件的主要内容，中文简短回复",
     #         file_path=pdf_file
     #     )
-    #     print(f"\nPDF文件响应:\n{response}\n")
+    #     logger.info(f"\nPDF文件响应:\n{response}\n")
