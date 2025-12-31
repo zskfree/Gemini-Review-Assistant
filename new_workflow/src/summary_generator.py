@@ -30,13 +30,17 @@ def load_existing_results(output_file_path: str) -> Tuple[Set[str], List[Dict]]:
         try:
             with open(output_file_path, "r", encoding="utf-8") as json_file:
                 existing_results = json.load(json_file)
+                logger.info(f"正在加载已有结果文件: {output_file_path}, 共 {len(existing_results)} 条记录")
                 for entry in existing_results:
                     # 只有当没有错误信息且存在摘要内容时，才视为处理成功
                     if "error" not in entry and entry.get("summary"):
                         processed_files.add(entry.get("file_name"))
                         valid_results.append(entry)
+                logger.info(f"有效已完成记录: {len(processed_files)} 条")
         except Exception as e:
-            logger.error(f"加载已有结果文件失败: {e}")
+            logger.error(f"加载已有结果文件失败 ({output_file_path}): {e}")
+    else:
+        logger.info(f"已有结果文件不存在: {output_file_path}，将创建新文件")
     
     return processed_files, valid_results
 

@@ -1,16 +1,44 @@
-# 字节编译 / 优化 / DLL 文件
+# === Python 核心 ===
 __pycache__/
 *.py[cod]
 *$py.class
- 
-# C 扩展
 *.so
- 
-# 分发 / 打包
 .Python
+*.egg-info/
+*.egg
+MANIFEST
+
+# === 虚拟环境 ===
+.env
+.venv
 env/
 venv/
 ENV/
+env.bak/
+venv.bak/
+.python-version
+
+# === 配置文件与敏感数据 ===
+config.yaml
+*.env
+local_settings.py
+instance/
+.webassets-cache
+
+# === 常用 IDE / 编辑器 ===
+.vscode/
+.idea/
+.spyderproject
+.spyproject
+.ropeproject
+*.swp
+*.swo
+
+# === 操作系统相关 ===
+.DS_Store
+Thumbs.db
+
+# === 分发 / 打包 ===
 build/
 develop-eggs/
 dist/
@@ -25,22 +53,11 @@ var/
 wheels/
 pip-wheel-metadata/
 share/python-wheels/
-*.egg-info/
 .installed.cfg
-*.egg
-MANIFEST
- 
-# PyInstaller
-# 通常这些文件是由 python 脚本从模板写入的
-# 在 PyInstaller 构建 exe 之前，以便注入日期/其他信息到其中
 *.manifest
 *.spec
- 
-# 安装程序日志
-pip-log.txt
-pip-delete-this-directory.txt
- 
-# 单元测试 / 覆盖率报告
+
+# === 单元测试 / 覆盖率报告 ===
 htmlcov/
 .tox/
 .nox/
@@ -53,82 +70,34 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 testlog/
- 
-# 翻译
-*.mo
-*.pot
- 
-# Django 相关
-*.log
-local_settings.py
+
+# === 数据库 ===
 db.sqlite3
 db.sqlite3-journal
- 
-# Flask 相关
-instance/
-.webassets-cache
- 
-# Scrapy 相关
-.scrapy
- 
-# Sphinx 文档
+*.log
+
+# === 文档与工具 ===
 docs/_build/
- 
-# PyBuilder
-target/
- 
-# Jupyter Notebook
-.ipynb_checkpoints
- 
-# pyenv
-.python-version
- 
-# celery beat 调度文件
-celerybeat-schedule
- 
-# SageMath 解析文件
-*.sage.py
- 
-# 环境变量
-.env
-.venv
-env.bak/
-venv.bak/
- 
-# Spyder 项目设置
-.spyderproject
-.spyproject
- 
-# Rope 项目设置
-.ropeproject
- 
-# mkdocs 文档
 /site
- 
-# mypy
+target/
+.ipynb_checkpoints
 .mypy_cache/
 .dmypy.json
 dmypy.json
- 
-# Pyre 类型检查器
 .pyre/
- 
-# pytype 静态类型分析器
 .pytype/
- 
-# Cython 调试符号
 cython_debug/
+*.mo
+*.pot
+celerybeat-schedule
+*.sage.py
 
-# 包含敏感数据的配置文件
-config.yaml
-*.env
-
-# 私人文件
+# === ScholarFlow 项目私有文件 ===
 PDF_Files_zsk/
 Results_Files_zsk/
 TXT_Files_zsk/
 new_workflow/txts_zsk/
 new_workflow/pdfs_zsk/
-旧版本_弃用.7z
-new_workflow/gemini_web/
 new_workflow/test/
+new_workflow/gemini_web/cookie/
+旧版本_弃用.7z

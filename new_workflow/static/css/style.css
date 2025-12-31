@@ -1,0 +1,398 @@
+/* =========================================
+   GLOBAL VARS & RESET (Modern Grotesque)
+   ========================================= */
+:root {
+    --bg-color: #050505;
+    --text-main: #eaeaea;
+    --text-muted: #a0a0a0;
+    --acid-green: #ccff00;
+    --acid-purple: #7000ff;
+    --alert-red: #ff2a2a;
+    --border-width: 3px;
+    --solid-shadow: 6px 6px 0px 0px;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: 'Courier New', 'Monaco', monospace;
+    /* 强制等宽或机械感字体 */
+    padding-top: 50px;
+    padding-bottom: 50px;
+    cursor: crosshair;
+    /* 全局十字准星 */
+    overflow-x: hidden;
+}
+
+/* 噪点背景层 (位于文字之下) */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.07'/%3E%3C/svg%3E");
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* 去除所有圆角 */
+* {
+    border-radius: 0 !important;
+}
+
+/* =========================================
+   TYPOGRAPHY
+   ========================================= */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    /* Clean sans-serif instead of Impact */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #fff;
+    font-weight: 800;
+    /* Use weight for boldness instead of font choice */
+}
+
+/* 主页标题特定样式 (保留原h1-h6定义中的部分，但settings页使用Impact) */
+h1.acid-title,
+h2.acid-title {
+    color: var(--acid-green);
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+
+.form-label {
+    font-weight: bold;
+    color: var(--acid-green);
+    background: #000;
+    display: inline-block;
+    padding: 2px 6px;
+    border: 1px solid var(--acid-green);
+    margin-bottom: 8px;
+    text-shadow: none;
+    /* Ensure no shadow causing blur */
+    font-family: 'Courier New', monospace;
+    /* Ensure usage of monospaced font for labels */
+}
+
+.form-text {
+    color: #b0b0b0;
+    /* Increased brightness from #888 */
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+/* =========================================
+   CONTAINERS & CARDS
+   ========================================= */
+.container {
+    max-width: 1200px;
+    background: #111;
+    padding: 40px;
+    border: var(--border-width) solid var(--text-main);
+    box-shadow: var(--solid-shadow) var(--acid-purple);
+    position: relative;
+    margin-bottom: 50px;
+}
+
+/* Settings页容器调整 */
+.container.settings-container {
+    max-width: 900px;
+    box-shadow: var(--solid-shadow) #444;
+}
+
+/* 装饰性边角 (仅主容器) */
+.container:not(.settings-container)::after {
+    content: "SCHOLAR_FLOW_VER_2.0";
+    position: absolute;
+    top: -15px;
+    right: -3px;
+    background: var(--acid-purple);
+    color: #fff;
+    font-size: 12px;
+    padding: 2px 8px;
+    font-weight: bold;
+}
+
+.card {
+    background: #000;
+    border: 2px solid #333;
+}
+
+/* =========================================
+   FORMS & INPUTS
+   ========================================= */
+.form-control,
+.form-select {
+    background-color: #000;
+    border: 2px solid #444;
+    color: var(--text-main);
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.form-control:focus,
+.form-select:focus {
+    background-color: #000;
+    color: #fff;
+    border-color: var(--acid-green);
+    box-shadow: 4px 4px 0 var(--acid-green);
+}
+
+.form-control::placeholder {
+    color: #888;
+    /* Increased visibility from #555 */
+    font-style: italic;
+    opacity: 1;
+    /* Firefox fix */
+}
+
+/* 切换开关样式 */
+.form-check-input {
+    background-color: #000;
+    border: 2px solid #555;
+    cursor: pointer;
+}
+
+.form-check-input:checked {
+    background-color: var(--acid-green);
+    border-color: var(--acid-green);
+}
+
+/* =========================================
+   BUTTONS (Acid Style)
+   ========================================= */
+.btn {
+    font-weight: 900;
+    text-transform: uppercase;
+    border: 2px solid;
+    padding: 12px 24px;
+    transition: all 0.1s steps(2);
+    /* 硬切换动画 */
+    position: relative;
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* 主要按钮 */
+.btn-primary {
+    background-color: var(--acid-green);
+    border-color: var(--acid-green);
+    color: #000;
+}
+
+.btn-primary:hover {
+    background-color: #fff;
+    border-color: #fff;
+    color: #000;
+    box-shadow: 6px 6px 0 var(--acid-purple);
+    transform: translate(-2px, -2px);
+}
+
+/* 次要/设置按钮 (主页) */
+.btn-outline-primary {
+    color: var(--acid-purple);
+    border-color: var(--acid-purple);
+    background: transparent;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--acid-purple);
+    color: #fff;
+    box-shadow: 4px 4px 0 var(--text-main);
+}
+
+/* 成功按钮 */
+.btn-success {
+    background-color: var(--acid-purple);
+    border-color: var(--acid-purple);
+    color: #fff;
+}
+
+.btn-success:hover {
+    background-color: #fff;
+    color: var(--acid-purple);
+    box-shadow: 6px 6px 0 var(--acid-green);
+}
+
+/* 禁用状态 */
+.btn:disabled {
+    background: #333;
+    border-color: #333;
+    color: #888;
+    opacity: 1;
+    cursor: not-allowed;
+}
+
+/* 灰色轮廓按钮 (Settings页) */
+.btn-outline-secondary {
+    color: #aaa;
+    border-color: #aaa;
+}
+
+.btn-outline-secondary:hover {
+    background: #aaa;
+    color: #000;
+}
+
+/* =========================================
+   LISTS & TABLES
+   ========================================= */
+.list-group-item {
+    background-color: #000;
+    border: 1px solid #333;
+    color: var(--text-main);
+    margin-bottom: 5px;
+}
+
+.table {
+    color: var(--text-main);
+    border-color: #333;
+}
+
+.table thead th {
+    background-color: var(--acid-purple);
+    color: #fff;
+    border-bottom: none;
+    text-transform: uppercase;
+}
+
+.table td {
+    background-color: #000;
+    /* 改为纯黑背景 */
+    border: 1px solid #444;
+    /* 增强边框对比 */
+    color: #fff;
+    /* 强制使用纯白文字，确保清晰 */
+    vertical-align: middle;
+}
+
+/* =========================================
+   ALERTS & LOADERS & ACCORDION
+   ========================================= */
+.alert {
+    border: 2px solid;
+    background: #000;
+    color: var(--text-main);
+    font-weight: bold;
+}
+
+.alert-success {
+    border-color: var(--acid-green);
+    box-shadow: 4px 4px 0 var(--acid-green);
+}
+
+.alert-danger {
+    border-color: var(--alert-red);
+    box-shadow: 4px 4px 0 var(--alert-red);
+}
+
+.spinner-border {
+    border-width: 4px;
+    border-radius: 0 !important;
+    animation-duration: 0.5s;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #000;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--acid-green);
+    border: 2px solid #000;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--acid-purple);
+}
+
+/* Accordion (Settings) */
+.accordion-item {
+    background-color: transparent;
+    border: none;
+    margin-bottom: 10px;
+}
+
+.accordion-button {
+    background-color: #000;
+    color: var(--acid-green);
+    border: 2px solid #333;
+    font-weight: bold;
+    box-shadow: 3px 3px 0 #222;
+    font-family: 'Courier New', monospace;
+    /* Consistent font */
+    text-shadow: none;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: var(--acid-green);
+    color: #000;
+    box-shadow: 3px 3px 0 var(--acid-purple);
+}
+
+.accordion-body {
+    background: #0a0a0a;
+    border: 2px solid #333;
+    border-top: none;
+    padding: 20px;
+}
+
+/* Specific Section Title for Settings */
+.section-title {
+    border-left: 8px solid var(--acid-green);
+    padding-left: 15px;
+    margin-bottom: 25px;
+    margin-top: 40px;
+    background: linear-gradient(90deg, #1a1a1a, transparent);
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+/* Toast Notification (Simple) */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.acid-toast {
+    background: #000;
+    border: 2px solid var(--acid-green);
+    color: #fff;
+    padding: 15px 25px;
+    margin-bottom: 10px;
+    box-shadow: 4px 4px 0 var(--acid-green);
+    animation: slideIn 0.3s ease-out;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 300px;
+}
+
+.acid-toast.error {
+    border-color: var(--alert-red);
+    box-shadow: 4px 4px 0 var(--alert-red);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}

@@ -1,22 +1,26 @@
 # 网络代理配置
 proxy:
-  url: "http://127.0.0.1:7890"  # 如果不使用代理，请留空字符串 ""
+  url: "http://127.0.0.1:7897"  # 如果不使用代理，请留空字符串 ""
+
+# 并发配置
+concurrency:
+  max_workers: 1
 
 # 针对不同任务使用模型配置
 model:
   literature_summary:
-    provider: "zhipu"
-    model_name: "glm-4.6v-flash"
+    provider: "gemini_web"
+    model_name: "unspecified"
     temperature: 0.2
 
   reference_extraction:
-    provider: "zhipu"
-    model_name: "glm-4.6v-flash"
+    provider: "gemini_web"
+    model_name: "unspecified"
     temperature: 0.2
 
 # API配置
 api:
-  provider: "zhipu"  # 可选值：gemini, openai, zhipu
+  provider: "gemini_web"  # 可选值：gemini, openai, zhipu, gemini_web
 
   # Gemini 默认配置
   genai_key: ""
@@ -33,6 +37,9 @@ api:
   zhipu_model: "glm-4.6v-flash"
   zhipu_enable_thinking: true  # 是否启用深度思考模式
 
+  # Gemini Web 默认配置
+  gemini_cookie_file: "new_workflow/gemini_web/cookie/cookie.json"
+
   default_temperature: 0.2
   max_retries: 3
 
@@ -42,4 +49,5 @@ paths:
   research_topic_file: "new_workflow/txts/研究主题.txt"
   reference_file: "new_workflow/txts/参考文献列表.txt"
   reference_mapping: "new_workflow/txts/reference_mapping.json"   # 运行后会生成此文件，文献引用与pdf的映射关系
-  summary_save_path: "new_workflow/txts/literature_summary.json"  # 运行后会生成此文件，所有的文献总结结果
+  summary_save_path: "new_workflow/txts_zsk/literature_summary.json"  # 运行后会生成此文件，所有的文献总结结果
+  result_csv: "new_workflow/txts_zsk/summary_sorted.csv"          # 最终生成的 Excel/CSV 结果文件

@@ -73,6 +73,45 @@ def get_config(key: str, default: Any = None) -> Any:
         logger.error(f"获取配置项 '{key}' 失败: {e}")
         return default
 
+def update_recursive(original: Dict[str, Any], new_data: Dict[str, Any]):
+    """递归更新字典，保留原有的结构"""
+    for key, value in new_data.items():
+        if key in original and isinstance(original[key], dict) and isinstance(value, dict):
+            update_recursive(original[key], value)
+        else:
+            original[key] = value
+
+def save_config(config_path: str, new_config: Dict[str, Any]):
+    """
+    保存配置到文件，尽量保留原有格式和注释
+    优先尝试使用 ruamel.yaml (如果安装了)，否则使用 pyyaml
+    """
+    try:
+        from ruamel.yaml import YAML
+        yaml_parser = YAML()
+        yaml_parser.preserve_quotes = True
+        
+        # 读取原始文件以获取结构
+        with open(config_path, 'r', encoding='utf-8') as f:
+            code_yaml = yaml_parser.load(f)
+            
+        # 更新数据
+        update_recursive(code_yaml, new_config)
+        
+        # 写回文件
+        with open(config_path, 'w', encoding='utf-8') as f:
+            yaml_parser.dump(code_yaml, f)
+            
+    except ImportError:
+        # 降级方案：使用 pyyaml (无法保留注释)
+        logger.warning("ruamel.yaml not found, falling back to standard yaml (comments will be lost)")
+        with open(config_path, 'w', encoding='utf-8') as f:
+            yaml.dump(new_config, f, allow_unicode=True, sort_keys=False)
+            
+    except Exception as e:
+        logger.error(f"Error saving config: {e}")
+        raise
+
 if __name__ == "__main__":
     api_key = get_config("api.genai_key")
     print(f"API Key: {api_key[:50]}..." if api_key else "API Key not found")

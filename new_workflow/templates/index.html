@@ -6,276 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ScholarFlow - 文献综述助手</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        /* =========================================
-           GLOBAL VARS & RESET (Modern Grotesque)
-           ========================================= */
-        :root {
-            --bg-color: #050505;
-            --text-main: #eaeaea;
-            --text-muted: #a0a0a0;
-            --acid-green: #ccff00;
-            --acid-purple: #7000ff;
-            --alert-red: #ff2a2a;
-            --border-width: 3px;
-            --solid-shadow: 6px 6px 0px 0px;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: 'Courier New', 'Monaco', monospace;
-            /* 强制等宽或机械感字体 */
-            padding-top: 50px;
-            padding-bottom: 50px;
-            cursor: crosshair;
-            /* 全局十字准星 */
-            overflow-x: hidden;
-        }
-
-        /* 噪点背景层 (位于文字之下) */
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.07'/%3E%3C/svg%3E");
-            z-index: -1;
-            pointer-events: none;
-        }
-
-        /* 去除所有圆角 */
-        * {
-            border-radius: 0 !important;
-        }
-
-        /* =========================================
-           TYPOGRAPHY
-           ========================================= */
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6 {
-            font-family: 'Impact', 'Arial Black', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--acid-green);
-            /* 标题纯黑描边增强对比 */
-            text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-        }
-
-        .form-label {
-            font-weight: bold;
-            color: var(--acid-green);
-            background: #000;
-            display: inline-block;
-            padding: 2px 6px;
-            border: 1px solid var(--acid-green);
-            margin-bottom: 8px;
-        }
-
-        /* =========================================
-           CONTAINERS & CARDS
-           ========================================= */
-        .container {
-            max-width: 1200px;
-            background: #111;
-            /* 深色背景承载信息 */
-            padding: 40px;
-            border: var(--border-width) solid var(--text-main);
-            box-shadow: var(--solid-shadow) var(--acid-purple);
-            position: relative;
-        }
-
-        /* 装饰性边角 */
-        .container::after {
-            content: "SCHOLAR_FLOW_VER_2.0";
-            position: absolute;
-            top: -15px;
-            right: -3px;
-            background: var(--acid-purple);
-            color: #fff;
-            font-size: 12px;
-            padding: 2px 8px;
-            font-weight: bold;
-        }
-
-        /* =========================================
-           FORMS
-           ========================================= */
-        .form-control {
-            background-color: #000;
-            border: 2px solid #444;
-            color: var(--text-main);
-            font-size: 16px;
-            line-height: 1.6;
-        }
-
-        .form-control:focus {
-            background-color: #000;
-            color: #fff;
-            border-color: var(--acid-green);
-            box-shadow: 4px 4px 0 var(--acid-green);
-        }
-
-        .form-control::placeholder {
-            color: #555;
-            font-style: italic;
-        }
-
-        /* =========================================
-           BUTTONS (Acid Style)
-           ========================================= */
-        .btn {
-            font-weight: 900;
-            text-transform: uppercase;
-            border: 2px solid;
-            padding: 12px 24px;
-            transition: all 0.1s steps(2);
-            /* 硬切换动画 */
-            position: relative;
-            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
-        }
-
-        /* 主要按钮 */
-        .btn-primary {
-            background-color: var(--acid-green);
-            border-color: var(--acid-green);
-            color: #000;
-        }
-
-        .btn-primary:hover {
-            background-color: #fff;
-            border-color: #fff;
-            color: #000;
-            box-shadow: 6px 6px 0 var(--acid-purple);
-            transform: translate(-2px, -2px);
-        }
-
-        /* 设置按钮 */
-        .btn-outline-primary {
-            color: var(--acid-purple);
-            border-color: var(--acid-purple);
-            background: transparent;
-        }
-
-        .btn-outline-primary:hover {
-            background-color: var(--acid-purple);
-            color: #fff;
-            box-shadow: 4px 4px 0 var(--text-main);
-        }
-
-        /* 成功按钮 */
-        .btn-success {
-            background-color: var(--acid-purple);
-            border-color: var(--acid-purple);
-            color: #fff;
-        }
-
-        .btn-success:hover {
-            background-color: #fff;
-            color: var(--acid-purple);
-            box-shadow: 6px 6px 0 var(--acid-green);
-        }
-
-        /* 禁用状态 */
-        .btn:disabled {
-            background: #333;
-            border-color: #333;
-            color: #888;
-            opacity: 1;
-            cursor: not-allowed;
-        }
-
-        /* =========================================
-           LISTS & TABLES
-           ========================================= */
-        .list-group-item {
-            background-color: #000;
-            border: 1px solid #333;
-            color: var(--text-main);
-            margin-bottom: 5px;
-        }
-
-        .table {
-            color: var(--text-main);
-            border-color: #333;
-        }
-
-        .table thead th {
-            background-color: var(--acid-purple);
-            color: #fff;
-            border-bottom: none;
-            text-transform: uppercase;
-        }
-
-        .table td {
-            background-color: #000;
-            /* 改为纯黑背景 */
-            border: 1px solid #444;
-            /* 增强边框对比 */
-            color: #fff;
-            /* 强制使用纯白文字，确保清晰 */
-            vertical-align: middle;
-        }
-
-        /* =========================================
-           ALERTS & LOADERS
-           ========================================= */
-        .alert {
-            border: 2px solid;
-            background: #000;
-            color: var(--text-main);
-            font-weight: bold;
-        }
-
-        .alert-success {
-            border-color: var(--acid-green);
-            box-shadow: 4px 4px 0 var(--acid-green);
-        }
-
-        .alert-danger {
-            border-color: var(--alert-red);
-            box-shadow: 4px 4px 0 var(--alert-red);
-        }
-
-        .spinner-border {
-            border-width: 4px;
-            border-radius: 0 !important;
-            /* 方形旋转 */
-            animation-duration: 0.5s;
-        }
-
-        /* 滚动条定制 */
-        ::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #000;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--acid-green);
-            border: 2px solid #000;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--acid-purple);
-        }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
 </head>
 
 <body>
     <div class="container">
         <!-- Header -->
         <div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-secondary pb-3">
-            <h2 class="mb-0" style="font-size: 2.5rem;">ScholarFlow<span
-                    style="font-size:1rem; color:#fff; -webkit-text-stroke:0;"> // 文献综述助手</span></h2>
+            <h2 class="mb-0 acid-title" style="font-size: 2.5rem;">ScholarFlow<span
+                    style="font-size:1rem; color:#fff; -webkit-text-stroke:0; text-shadow:none;"> // 文献综述助手</span></h2>
             <a href="/settings" class="btn btn-outline-primary">系统参数配置 [⚙️]</a>
         </div>
 
@@ -378,10 +118,13 @@
         </div>
     </div>
 
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
         let currentConfig = {};
-        
+
         // SSE 连接
         let evtSource = null;
 
@@ -389,14 +132,14 @@
             if (evtSource) return; // 防止重复连接
 
             evtSource = new EventSource("/events");
-            
-            evtSource.onmessage = function(e) {
+
+            evtSource.onmessage = function (e) {
                 // 处理普通消息 (默认 event: message)
                 console.log("SSE Message:", e.data);
             };
 
             // 监听进度事件
-            evtSource.addEventListener("progress", function(e) {
+            evtSource.addEventListener("progress", function (e) {
                 const data = JSON.parse(e.data);
                 const progressBar = document.getElementById('progressBar');
                 const progressPercent = document.getElementById('progressPercent');
@@ -410,21 +153,21 @@
                     } else {
                         percent = Math.round((data.current / data.total) * 100);
                     }
-                    
+
                     progressBar.style.width = percent + '%';
                     progressPercent.innerText = percent + '%';
                     progressDetail.innerText = `已处理: ${data.current} / 总计: ${data.total} (${data.message || '...'})`;
                 } else {
-                     progressDetail.innerText = data.message;
+                    progressDetail.innerText = data.message;
                 }
             });
 
             // 监听映射结果事件
-            evtSource.addEventListener("mapping_result", function(e) {
+            evtSource.addEventListener("mapping_result", function (e) {
                 const data = JSON.parse(e.data);
                 const mappingBtn = document.getElementById('mappingBtn');
                 const loading = document.querySelector('.loading');
-                
+
                 loading.style.display = 'none';
                 mappingBtn.disabled = false;
                 mappingBtn.innerHTML = '<span class="d-inline-block border border-dark px-1 me-2 bg-white text-dark">01</span> 开始文献映射';
@@ -435,18 +178,18 @@
                     document.getElementById('mappingResultArea').classList.remove('d-none');
                     document.getElementById('mappingResultArea').scrollIntoView({ behavior: 'smooth' });
                 } else {
-                    alert("映射失败: " + data.message);
+                    showToast("映射失败: " + data.message, 'error');
                 }
             });
 
             // 监听总结结果事件
-            evtSource.addEventListener("summary_result", function(e) {
+            evtSource.addEventListener("summary_result", function (e) {
                 const data = JSON.parse(e.data);
                 const summaryBtn = document.getElementById('summaryBtn');
                 const loading = document.querySelector('.loading');
                 const resultMessage = document.getElementById('resultMessage');
                 const downloadArea = document.getElementById('downloadArea');
-                
+
                 loading.style.display = 'none';
                 summaryBtn.disabled = false;
                 summaryBtn.innerHTML = '<span class="d-inline-block border border-white px-1 me-2 bg-dark text-white">02</span> 逐篇生成总结';
@@ -468,8 +211,8 @@
                     resultMessage.classList.remove('d-none');
                 }
             });
-            
-            evtSource.onerror = function(e) {
+
+            evtSource.onerror = function (e) {
                 console.error("SSE Error:", e);
                 // 连接断开后通常会自动重连，这里可以不做特殊处理
             };
@@ -490,7 +233,7 @@
         async function uploadFiles() {
             const fileInput = document.getElementById('pdfInput');
             if (fileInput.files.length === 0) {
-                alert("请先选择要上传的 PDF 文件");
+                showToast("请先选择要上传的 PDF 文件", 'error');
                 return;
             }
 
@@ -513,12 +256,12 @@
                 if (data.status === 'success') {
                     renderPdfList(data.existing_pdfs);
                     fileInput.value = ''; // 清空选择
-                    alert(data.message);
+                    showToast(data.message);
                 } else {
-                    alert("上传失败: " + data.message);
+                    showToast("上传失败: " + data.message, 'error');
                 }
             } catch (error) {
-                alert("上传请求出错: " + error.message);
+                showToast("上传请求出错: " + error.message, 'error');
             } finally {
                 btn.disabled = false;
                 btn.textContent = originalText;
@@ -583,9 +326,9 @@
             });
             const data = await response.json();
             if (data.status === 'success') {
-                loadData(); 
+                loadData();
             } else {
-                alert(data.message);
+                showToast(data.message, 'error');
             }
         }
 
@@ -599,7 +342,7 @@
             mappingBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 正在请求任务...`;
             loading.style.display = 'block';
             document.getElementById('progressStatus').innerText = "任务初始化...";
-            
+
             // 重置进度条
             document.getElementById('progressBar').style.width = '0%';
             document.getElementById('progressPercent').innerText = '0%';
@@ -610,7 +353,7 @@
                     body: formData
                 });
                 const data = await response.json();
-                
+
                 if (data.status === 'started') {
                     // 请求成功，等待 SSE 回调更新 UI
                     mappingBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 任务运行中...`;
@@ -619,13 +362,13 @@
                     loading.style.display = 'none';
                     mappingBtn.disabled = false;
                     mappingBtn.innerHTML = '<span class="d-inline-block border border-dark px-1 me-2 bg-white text-dark">01</span> 开始文献映射';
-                    alert("启动失败: " + data.message);
+                    showToast("启动失败: " + data.message, 'error');
                 }
             } catch (error) {
                 loading.style.display = 'none';
                 mappingBtn.disabled = false;
                 mappingBtn.innerHTML = '<span class="d-inline-block border border-dark px-1 me-2 bg-white text-dark">01</span> 开始文献映射';
-                alert("请求出错: " + error.message);
+                showToast("请求出错: " + error.message, 'error');
             }
         }
 
@@ -676,7 +419,7 @@
                     method: 'POST'
                 });
                 const data = await response.json();
-                
+
                 if (data.status === 'started') {
                     // 请求成功，等待 SSE
                     summaryBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 任务运行中...`;

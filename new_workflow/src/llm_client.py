@@ -217,15 +217,9 @@ class LLMClient:
         Returns:
             ChatResponse: 包含 text、saved_images、raw_response
         """
-        from gemini_webapi import GeminiClient, set_log_level
-        import sys
-        import os
-        # 获取项目根目录并添加到 sys.path
-        current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # src的父目录
-        gemini_web_dir = os.path.join(current_dir, 'gemini_web')
-        if gemini_web_dir not in sys.path:
-            sys.path.insert(0, gemini_web_dir)
-        from get_cookie import get_gemini_tokens # type: ignore
+        from gemini_webapi import GeminiClient
+        from gemini_web.get_cookie import get_gemini_tokens
+        from .config_loader import get_config
         from .logger import logger
         
         file_paths = self._normalize_file_paths(file_path)
@@ -237,12 +231,26 @@ class LLMClient:
 
         # 延迟初始化客户端
         if not self._gemini_web_initialized:
-            token_id, token_ts = get_gemini_tokens()
-            self.client = GeminiClient(token_id, token_ts, proxy=self.proxy)
-            await self.client.init(timeout=3000, auto_refresh=True)
-            self.chat_session = self.client.start_chat(model=self.model)
-            self._gemini_web_initialized = True
-            logger.info("✅ Gemini Web API 已就绪")
+            cookie_file = get_config("api.gemini_cookie_file", None)
+            
+            # 重试逻辑
+            for attempt in range(self.max_retries):
+                try:
+                    token_id, token_ts = get_gemini_tokens(cookie_file)
+                    self.client = GeminiClient(token_id, token_ts, proxy=self.proxy)
+                    
+                    # 增加超时时间并添加重试
+                    await self.client.init(timeout=60, auto_refresh=True)
+                    self.chat_session = self.client.start_chat(model=self.model)
+                    self._gemini_web_initialized = True
+                    logger.info("✅ Gemini Web API 已就绪")
+                    break
+                except Exception as e:
+                    logger.warning(f"Gemini Web 初始化失败 (尝试 {attempt + 1}/{self.max_retries}): {e}")
+                    if attempt < self.max_retries - 1:
+                        await asyncio.sleep(2 * (attempt + 1))
+                    else:
+                        raise RuntimeError(f"Gemini Web 初始化失败，已重试 {self.max_retries} 次: {e}")
 
         # 开启新会话
         if new_chat:
