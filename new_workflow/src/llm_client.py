@@ -22,8 +22,6 @@ PROXY_URL = get_config("proxy.url", "")
 if PROXY_URL:
     os.environ["HTTP_PROXY"] = PROXY_URL
     os.environ["HTTPS_PROXY"] = PROXY_URL
-
-from dataclasses import dataclass
 @dataclass
 class ChatResponse:
     """统一的返回结果对象"""
@@ -130,10 +128,10 @@ class LLMClient:
         if not self.api_key or self.api_key == "your-zhipu-key":
             raise ValueError("未找到智谱AI API 密钥，请检查配置文件")
         try:
-            from zai import ZhipuAiClient
-            self.client = ZhipuAiClient(api_key=self.api_key)
+            from zhipuai import ZhipuAI
+            self.client = ZhipuAI(api_key=self.api_key)
         except ImportError:
-            raise ImportError("请安装 zai 库: pip install zai")
+            raise ImportError("请安装 zhipuai 库: pip install zhipuai")
 
     def _normalize_file_paths(self, file_path: Union[str, List[str], None]) -> List[str]:
         """统一处理文件路径参数，转换为列表形式"""
@@ -155,7 +153,20 @@ class LLMClient:
             return self.generate_with_gemini(prompt, file_path)
         elif self.provider == "gemini_web":
             # 对于 gemini_web，在同步环境中运行异步代码
-            return asyncio.run(self.generate_async(prompt, file_path))
+            # 检查是否已有事件循环在运行
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+            
+            if loop is not None:
+                # 已有事件循环，创建新线程运行
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(asyncio.run, self.generate_async(prompt, file_path))
+                    return future.result()
+            else:
+                return asyncio.run(self.generate_async(prompt, file_path))
         elif self.provider == "openai":
             return self.generate_with_openai(prompt, file_path)
         elif self.provider == "zhipu":

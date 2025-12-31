@@ -29,6 +29,17 @@ CONFIG_FILE = os.path.join(os.path.dirname(__file__), "config.yaml")
 def events():
     return Response(task_manager.listen(), mimetype='text/event-stream')
 
+
+@app.route('/health')
+def health_check():
+    """健康检查端点"""
+    return jsonify({
+        "status": "healthy",
+        "timestamp": time.time(),
+        "service": "ScholarFlow"
+    })
+
+
 @app.route('/get-progress')
 def get_progress():
     return jsonify(task_manager.get_progress())
@@ -100,19 +111,21 @@ def delete_pdf():
     if not filename:
         return jsonify({"status": "error", "message": "未指定文件名"})
     
+    # 防止路径遍历：使用 secure_filename 清理文件名
+    safe_name = secure_filename(filename)
+    if not safe_name:
+        logger.warning(f"Security Alert: Invalid filename received: {filename}")
+        return jsonify({"status": "error", "message": "非法的文件名"})
     
-    # 防止路径遍历
-    safe_filename = secure_filename(filename)
     # 额外检查：确保解析后的绝对路径仍在 PDF_FOLDER 内
-    requested_path = os.path.abspath(os.path.join(PDF_FOLDER, filename))
+    requested_path = os.path.abspath(os.path.join(PDF_FOLDER, safe_name))
     trusted_path = os.path.abspath(PDF_FOLDER)
     
-    if not requested_path.startswith(trusted_path):
+    if not requested_path.startswith(trusted_path + os.sep):
         logger.warning(f"Security Alert: Path traversal attempt detected: {filename}")
         return jsonify({"status": "error", "message": "非法的文件名"})
 
-    # 优先使用 request 中的 filename 进行查找 (如果它不含非法字符)，或者限制只能删除当前目录文件
-    # 这里我们强制只能删除 PDF_FOLDER 下的文件
+    # 只能删除 PDF_FOLDER 下的文件
     if not os.path.exists(requested_path):
         return jsonify({"status": "error", "message": "文件不存在"})
 

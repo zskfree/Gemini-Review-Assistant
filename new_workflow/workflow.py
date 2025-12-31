@@ -82,7 +82,9 @@ def run_summary_step(reference_mapping=None, progress_callback=None):
     # 注意：batch_process_pdfs 只返回本次新处理的结果
     # 如果所有文件都已处理过，summary_results 为空，但我们仍希望告知用户完成
     if summary_results or os.path.exists(summary_save_path):
-        csv_path = get_config("paths.result_csv", r"new_workflow/txts_zsk/summary_sorted.csv")
+        csv_path = get_config("paths.result_csv")
+        if not csv_path:
+            raise ValueError("配置文件中未指定 paths.result_csv")
         export_from_json(summary_save_path, csv_path)
         
         # 重新读取最终的成功总结数（包括本次新处理的）
