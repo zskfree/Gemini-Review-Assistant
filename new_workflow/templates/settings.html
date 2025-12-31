@@ -201,6 +201,7 @@
                             <option value="zhipu">智谱AI (Zhipu)</option>
                             <option value="gemini">Google Gemini</option>
                             <option value="openai">OpenAI / 兼容</option>
+                            <option value="gemini_web">Google Gemini-Web</option>
                         </select>
                         <label class="form-label">模型名称</label>
                         <input type="text" class="form-control mb-3" id="model_summary_name"
@@ -219,6 +220,7 @@
                             <option value="zhipu">智谱AI (Zhipu)</option>
                             <option value="gemini">Google Gemini</option>
                             <option value="openai">OpenAI / 兼容</option>
+                            <option value="gemini_web">Google Gemini-Web</option>
                         </select>
                         <label class="form-label">模型名称</label>
                         <input type="text" class="form-control mb-3" id="model_ref_name"
@@ -238,6 +240,7 @@
                     <option value="zhipu">智谱AI</option>
                     <option value="gemini">Gemini</option>
                     <option value="openai">OpenAI</option>
+                    <option value="gemini_web">Google Gemini-Web</option>
                 </select>
             </div>
 
@@ -293,6 +296,19 @@
                     </div>
                 </div>
             </div>
+            <!-- gemini_web -->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseGeminiWeb">Google Gemini-Web</button>
+                </h2>
+                <div id="collapseGeminiWeb" class="accordion-collapse collapse" data-bs-parent="#apiAccordion">
+                    <div class="accordion-body">
+                        <div class="alert alert-warning" role="alert">
+                            Gemini-Web 模型不需要 API 密钥，但需要确保您的网络环境可以访问 Google 服务。
+                        </div>
+                    </div>
+                </div>
 
             <!-- 路径配置 -->
             <h4 class="section-title">文件系统路径</h4>

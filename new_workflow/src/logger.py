@@ -55,6 +55,11 @@ def setup_logger(name: str = "ScholarFlow", log_level: int = logging.INFO, log_f
     file_handler.setFormatter(formatter)
     file_handler.setLevel(log_level)
     logger.addHandler(file_handler)
+    
+    # 禁用第三方库的 DEBUG 日志
+    logging.getLogger("gemini_webapi").setLevel(logging.WARNING)
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
 
     return logger
 

@@ -8,3 +8,4 @@ zhipuai
 markitdown
 pypinyin
 Werkzeug
+gemini_webapi
